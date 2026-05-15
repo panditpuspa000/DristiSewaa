@@ -1,0 +1,86 @@
+{% extends 'dashboard/admin.html' %} {% block content %}
+<main class="main-content">
+    <div class="header">
+        <div>
+            <h1>Branch Management</h1>
+            <p style="color: #64748b;">Oversee regional operations and staff allocation across branches.</p>
+        </div>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <div class="search-container" style="position: relative;">
+                <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+                <input type="text" placeholder="Filter branches..." style="padding: 12px 15px 12px 40px; border: 1px solid #e2e8f0; border-radius: 8px; width: 300px; background: #f8fafc;">
+            </div>
+            <a href="{% url 'create_branch' %}" class="create-btn">+ Create New Branch</a>
+        </div>
+    </div>
+
+    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 30px;">
+        <div class="stat-card">
+            <h3 style="color: #64748b; font-size: 12px;">TOTAL BRANCHES</h3>
+            <div class="number" style="font-size: 32px; font-weight: bold; margin: 10px 0;">{{ branch_count }}</div>
+            <i class="fas fa-building" style="float: right; color: #3b82f6; opacity: 0.2; font-size: 40px; margin-top: -40px;"></i>
+        </div>
+        <div class="stat-card">
+            <h3 style="color: #64748b; font-size: 12px;">TOTAL STAFF</h3>
+            <div class="number" style="font-size: 32px; font-weight: bold; margin: 10px 0;">{{ staff_count }}</div>
+            <i class="fas fa-users" style="float: right; color: #3b82f6; opacity: 0.2; font-size: 40px; margin-top: -40px;"></i>
+        </div>
+        <div class="stat-card">
+            <h3 style="color: #64748b; font-size: 12px;">GROWTH TREND</h3>
+            <div class="number" style="font-size: 32px; font-weight: bold; color: #059669; margin: 10px 0;">+12%</div>
+            <i class="fas fa-chart-line" style="float: right; color: #059669; opacity: 0.2; font-size: 40px; margin-top: -40px;"></i>
+        </div>
+    </div>
+
+    <div style="background: white; border-radius: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                <tr>
+                    <th style="padding: 20px; color: #64748b; font-size: 12px;">BRANCH NAME</th>
+                    <th style="padding: 20px; color: #64748b; font-size: 12px;">MANAGER NAME</th>
+                    <th style="padding: 20px; color: #64748b; font-size: 12px;">EMAIL ADDRESS</th>
+                    <th style="padding: 20px; color: #64748b; font-size: 12px;">STATUS</th>
+                    <th style="padding: 20px; color: #64748b; font-size: 12px;">ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for branch in branches %}
+                <tr style="border-bottom: 1px solid #f1f5f9; transition: 0.3s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                    <td style="padding: 20px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="background: #eef2ff; color: #3b82f6; padding: 10px; border-radius: 8px; font-weight: bold;">
+                                {{ branch.branch_name|slice:":2"|upper }}
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: #1e293b;">{{ branch.branch_name }}</div>
+                                <div style="font-size: 12px; color: #64748b;">{{ branch.location }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="padding: 20px; color: #334155;">{{ branch.manager.get_full_name|default:branch.manager.username }}</td>
+                    <td style="padding: 20px; color: #64748b;">{{ branch.manager.email }}</td>
+                    <td style="padding: 20px;">
+                        <span style="background: #ecfdf5; color: #059669; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;">
+                            ● Active
+                        </span>
+                    </td>
+                    <td style="padding: 20px;">
+                        <div style="display: flex; gap: 15px; color: #94a3b8;">
+                            <a href="#" style="color: inherit;"><i class="fas fa-eye"></i></a>
+                            <a href="#" style="color: inherit;"><i class="fas fa-edit"></i></a>
+                            <a href="#" style="color: #ef4444;"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="padding: 40px; text-align: center; color: #64748b;">
+                        No branches found. Click "+ Create New Branch" to start.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main>
+{% endblock %}

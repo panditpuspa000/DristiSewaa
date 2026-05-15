@@ -1,0 +1,5 @@
+from django.apps import AppConfig
+
+class ConsultancyConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'apps.consultancy'  # Critical: Must include 'apps.' prefix
