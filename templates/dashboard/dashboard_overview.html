@@ -1,0 +1,83 @@
+{% extends 'dashboard/admin.html' %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <div>
+        <h1 style="font-size: 24px; font-weight: 700;">Overview</h1>
+        <p style="color: #64748b;">System status and performance metrics</p>
+    </div>
+    <button onclick="openBranchModal()" style="background: #0061f2; color: white; padding: 12px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer;">
+        + Create New Branch
+    </button>
+</div>
+
+<div class="stats-grid" style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 25px; margin-bottom: 40px;">
+    <div class="hero-card" style="background: linear-gradient(135deg, #0061f2, #00a3ff); color: white; padding: 30px; border-radius: 15px; position: relative; overflow: hidden;">
+        <p style="font-size: 12px; opacity: 0.8; font-weight: bold; text-transform: uppercase;">Consultancy Ecosystem</p>
+        <h2 style="font-size: 48px; margin: 10px 0;">1000</h2>
+        <p>Total Student Enrolled</p>
+        <div style="background: rgba(255,255,255,0.2); display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 12px; margin-top: 15px;">
+            📈 12.5% increase vs last batch
+        </div>
+        <i class="fas fa-user-graduate" style="position: absolute; right: 20px; bottom: 10px; font-size: 100px; opacity: 0.2;"></i>
+    </div>
+
+    <div class="stat-card" style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <i class="fas fa-building" style="color: #0061f2; margin-bottom: 15px; font-size: 24px;"></i>
+        <p style="color: #64748b; font-size: 12px; font-weight: bold;">Active Branches</p>
+        <h2 style="font-size: 32px; margin: 5px 0;">3</h2>
+        <p style="color: #0061f2; font-size: 12px; margin-top: 15px;">Across 5 region →</p>
+    </div>
+
+    <div class="stat-card" style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <i class="fas fa-check-circle" style="color: #f59e0b; margin-bottom: 15px; font-size: 24px;"></i>
+        <p style="color: #64748b; font-size: 12px; font-weight: bold;">Pending Follow-ups</p>
+        <h2 style="font-size: 32px; margin: 5px 0;">10</h2>
+        <p style="color: #64748b; font-size: 12px; margin-top: 15px;">Requires Attention</p>
+    </div>
+</div>
+
+<div class="dashboard-layout" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px;">
+    <div class="performance-section">
+        <h3 style="margin-bottom: 25px;">Branch Performance</h3>
+        <div style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px;">
+                <span>Kathmandu Central</span> <strong>92%</strong>
+            </div>
+            <div style="height: 8px; background: #e2e8f0; border-radius: 4px;"><div style="width: 92%; height: 100%; background: #0061f2; border-radius: 4px;"></div></div>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px;">
+                <span>Pokhara</span> <strong>78%</strong>
+            </div>
+            <div style="height: 8px; background: #e2e8f0; border-radius: 4px;"><div style="width: 78%; height: 100%; background: #0061f2; border-radius: 4px;"></div></div>
+        </div>
+        <div>
+            <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px;">
+                <span>Chitwan</span> <strong>64%</strong>
+            </div>
+            <div style="height: 8px; background: #e2e8f0; border-radius: 4px;"><div style="width: 64%; height: 100%; background: #0061f2; border-radius: 4px;"></div></div>
+        </div>
+    </div>
+
+    <div class="activity-section">
+        <h3 style="margin-bottom: 25px;">RECENT ACTIVITY</h3>
+        <ul style="list-style: none;">
+            <li style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <div style="width: 8px; height: 8px; border-radius: 50%; background: #0061f2; margin-top: 6px;"></div>
+                <div>
+                    <p style="font-size: 14px;"><strong>New student registered in Kathmandu</strong></p>
+                    <small style="color: #94a3b8;">1 hr ago</small>
+                </div>
+            </li>
+            <li style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <div style="width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; margin-top: 6px;"></div>
+                <div>
+                    <p style="font-size: 14px;"><strong>Document "Q3_Report.pdf" uploaded</strong></p>
+                    <small style="color: #94a3b8;">3 hrs ago</small>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

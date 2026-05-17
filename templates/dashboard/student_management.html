@@ -1,0 +1,95 @@
+{% extends 'dashboard/admin.html' %}
+
+{% block content %}
+<div class="page-header">Student Management</div>
+<p class="page-subtext">Oversee student and active follow-ups.</p>
+
+<div class="filter-bar">
+    <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="studentSearch" placeholder="Search students by name or phone...">
+    </div>
+    
+    <select class="branch-filter">
+        <option value="">All Branches</option>
+        <option value="kathmandu">Kathmandu Branch</option>
+        <option value="tanahun">Tanahun Branch</option>
+    </select>
+
+    <div class="status-tabs">
+        <div class="tab active" onclick="filterStatus('all')">All</div>
+        <div class="tab" onclick="filterStatus('due')">Due</div>
+        <div class="tab" onclick="filterStatus('upcoming')">Upcoming</div>
+        <div class="tab" onclick="filterStatus('completed')">Completed</div>
+    </div>
+</div>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Student Name</th>
+            <th>Phone Number</th>
+            <th>Status</th>
+            <th>Follow-up</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for student in students %}
+        <tr class="data-row">
+            <td style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 35px; height: 35px; background: #eef2ff; color: #4338ca; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: bold; font-size: 12px;">
+                    {{ student.user.get_full_name|slice:":1"|upper }}
+                </div>
+                <span style="font-weight: 600; color: #1e293b;">{{ student.user.get_full_name }}</span>
+            </td>
+            <td style="font-weight: 600; color: #475569;">{{ student.phone_number }}</td>
+            <td>
+                {% if student.is_active %}
+                <span class="badge status-active">Active</span>
+                {% else %}
+                <span class="badge" style="background: #f1f5f9; color: #64748b;">Inactive</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if student.follow_up_status == 'due' %}
+                <span class="badge follow-due">● Due</span>
+                {% elif student.follow_up_status == 'upcoming' %}
+                <span class="badge follow-upcoming">● Upcoming</span>
+                {% else %}
+                <span class="badge" style="color: #059669; background: #ecfdf5; border: 1px solid #d1fae5;">● Completed</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4" style="text-align: center; padding: 40px; color: #94a3b8;">
+                <i class="fas fa-user-slash" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+                No students found in the database.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px;">
+    <span style="color: #94a3b8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+        Showing {{ students|length }} of {{ total_students|default:students|length }} students
+    </span>
+    
+    <div style="display: flex; gap: 8px;">
+        <button class="tab" style="background: white; border: 1px solid #e2e8f0;">Previous</button>
+        <button class="tab active" style="padding: 8px 15px;">1</button>
+        <button class="tab" style="background: white; border: 1px solid #e2e8f0;">Next</button>
+    </div>
+</div>
+
+<script>
+    // Simple filter toggle for the tabs
+    function filterStatus(status) {
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        event.target.classList.add('active');
+        // Logic to filter table rows would go here
+    }
+</script>
+{% endblock %}

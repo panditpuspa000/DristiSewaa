@@ -20,7 +20,6 @@ def staff_login(request):
             if user.check_password(password):
                 if user.role == selected_role:
                     login(request, user)
-                    # Lowercase role check to match your custom User model
                     if user.role == 'admin':
                         return redirect('admin_dashboard')
                     elif user.role == 'manager':
@@ -36,6 +35,7 @@ def staff_login(request):
 
     return render(request, 'accounts/staff_login.html', {'error': error})
 
+
 def user_logout(request):
     """ Logs out the user and returns to login page. """
     logout(request)
@@ -47,27 +47,30 @@ def user_logout(request):
 # ==========================================
 
 def admin_dashboard(request):
-    """ The main Overview page with high-level stats. """
+    """ 
+    The main Overview page with high-level stats. 
+    Points to 'overview.html' to fill the {% block content %} in admin.html.
+    """
     context = {
-        'student_count': StudentProfile.objects.count(),
-        'branch_count': Branch.objects.count(),
+        'student_count': StudentProfile.objects.count(), # Returns total student records
+        'branch_count': Branch.objects.count(),         # Returns total branch records
     }
-    return render(request, 'dashboard/admin.html', context)
+    return render(request, 'dashboard/overview.html', context) 
 
 
 def branch_staff_list(request):
     """ 
-    The 'Branch & Staff' page from your screenshot.
-    Calculates stats for the cards and fetches table data.
+    The 'Branch & Staff' page.
+    Calculates stats for cards and fetches data for tables.
     """
     branches = Branch.objects.all()
-    # Excluding students to count only actual employees (Managers/Staff/Admin)
+    # Excluding students to count only actual employees
     staff_count = User.objects.exclude(role='student').count() 
     
     context = {
-        'branches': branches,             # For the table loop
-        'branch_count': branches.count(), # For the 'Total Branches' card
-        'staff_count': staff_count,       # For the 'Total Staff' card
+        'branches': branches,             
+        'branch_count': branches.count(), 
+        'staff_count': staff_count,       
     }
     return render(request, 'dashboard/branch_staff.html', context)
 
@@ -82,25 +85,42 @@ def create_branch(request):
         form = BranchForm(request.POST)
         if form.is_valid():
             form.save()
-            # Successfully saved - move to the list to see the new entry
             return redirect('branch_staff')
         else:
-            # If form fails, stay on page and show errors in terminal
             print(form.errors)
-    else:
-        form = BranchForm()
     
-    return render(request, 'dashboard/create_branch.html', {'form': form})
+    # If a user tries to visit this URL directly via GET, redirect to dashboard
+    return redirect('admin_dashboard')
 
 
 # ==========================================
-# 4. OTHER ROLE DASHBOARDS
+# 4. STUDENT MANAGEMENT
 # ==========================================
+
+def student_management(request):
+    """ 
+    FIXED: Added this missing view.
+    Handles rendering and operations for the Student Management dashboard.
+    """
+    # Fetch student profiles to showcase on the dashboard if template expects it
+    students = StudentProfile.objects.all()
+    
+    context = {
+        'students': students,
+        'student_count': students.count(),
+    }
+    return render(request, 'dashboard/students.html', context)
+
+
+# ==========================================
+# 5. OTHER ROLE DASHBOARDS
+# ==========================================   
 
 def manager_dashboard(request):
-    """ Dashboard for users with the 'manager' role. """
+    """ Dashboard view tailored for structural managers. """
     return render(request, 'dashboard/manager.html')
 
+
 def front_desk_dashboard(request):
-    """ Dashboard for users with the 'staff' role. """
+    """ Dashboard view tailored for office desk / front desk workflows. """
     return render(request, 'dashboard/front_desk.html')

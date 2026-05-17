@@ -1,5 +1,5 @@
-from pathlib import Path
 import os
+from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,7 +42,6 @@ ROOT_URLCONF = 'DristiSewa.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # Points Django to your main templates folder
         'DIRS': [BASE_DIR / 'templates'], 
         'APP_DIRS': True,
         'OPTIONS': {
@@ -80,10 +79,36 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = 'static/'
-# Tells Django where your global CSS/JS files are located
-STATICFILES_DIRS = [BASE_DIR / 'static']
+# ==============================================================================
+# STATIC & MEDIA FILES CONFIGURATIONS
+# ==============================================================================
+
+# UPDATED: Added leading slash to resolve absolute static routing asset paths correctly
+STATIC_URL = '/static/'
+
+# This tells Django where to look for your global static folder at the root level
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+# The directory where collectstatic will gather files for production
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Media files (User uploaded content like profile pictures)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# ==============================================================================
+# AUTHENTICATION & SECURITY SETTINGS
+# ==============================================================================
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom User Model
 AUTH_USER_MODEL = 'accounts.User'
+
+# Redirect links for Login/Logout
+LOGIN_URL = 'staff_login'
+LOGIN_REDIRECT_URL = 'admin_dashboard'
+LOGOUT_REDIRECT_URL = 'staff_login'

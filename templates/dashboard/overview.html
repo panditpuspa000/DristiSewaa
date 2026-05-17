@@ -1,0 +1,119 @@
+{% extends 'dashboard/admin.html' %}
+{% load static %}
+
+{% block content %}
+<div class="flex justify-between items-start mb-8">
+    <div>
+        <h1 class="text-3xl font-bold text-gray-900">Overview</h1>
+        <p class="text-gray-500 mt-1">System status and performance metrics</p>
+    </div>
+    <a href="{% url 'branch_staff' %}?openDrawer=true" class="bg-primary-blue hover:bg-blue-700 text-white font-medium px-5 py-3 rounded-xl flex items-center gap-2 shadow-sm transition no-underline inline-flex">
+        <i class="fa-solid fa-plus"></i> Create New Branch
+    </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+    <div class="bg-primary-blue rounded-2xl p-6 text-white flex justify-between items-center relative overflow-hidden shadow-sm">
+        <div class="z-10">
+            <p class="text-xs font-semibold tracking-wider uppercase opacity-80">Consultancy Ecosystem</p>
+            <p class="text-5xl font-bold my-3">{{ student_count|default:"0" }}</p>
+            <p class="text-sm font-medium mb-4">Total Student Enrolled</p>
+            <span class="inline-flex items-center gap-1.5 bg-white/20 text-xs px-3 py-1.5 rounded-lg font-medium backdrop-blur-sm">
+                <i class="fa-solid fa-chart-line"></i> 12.5% increase vs last batch
+            </span>
+        </div>
+        <div class="opacity-20 absolute right-4 bottom-2 text-[120px] pointer-events-none">
+            <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+    </div>
+
+    <div class="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col justify-between shadow-sm">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-gray-500 text-sm font-medium">Active Branches</p>
+                <p class="text-4xl font-bold text-gray-900 my-2">{{ branch_count|default:"0" }}</p>
+            </div>
+            <div class="bg-blue-50 text-primary-blue p-3 rounded-xl text-xl">
+                <i class="fa-solid fa-building"></i>
+            </div>
+        </div>
+        <p class="text-xs text-gray-400 mt-4 flex items-center gap-1">Across 5 regions <i class="fa-solid fa-arrow-right"></i></p>
+    </div>
+
+    <div class="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col justify-between shadow-sm">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-gray-500 text-sm font-medium">Pending Follow-ups</p>
+                <p class="text-4xl font-bold text-gray-900 my-2">10</p>
+            </div>
+            <div class="bg-orange-50 text-orange-600 p-3 rounded-xl text-xl">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+        </div>
+        <p class="text-xs text-orange-600 font-medium mt-4">Requires Attention</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <div class="lg:col-span-2 bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+        <h3 class="text-lg font-bold text-gray-900 mb-6">Branch Performance</h3>
+        
+        <div class="space-y-6">
+            <div>
+                <div class="flex justify-between text-sm font-semibold mb-2">
+                    <span class="text-gray-700">Kathmandu Central</span>
+                    <span class="text-primary-blue">92%</span>
+                </div>
+                <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                    <div class="bg-primary-blue h-full rounded-full" style="width: 92%"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between text-sm font-semibold mb-2">
+                    <span class="text-gray-700">Pokhara</span>
+                    <span class="text-primary-blue">78%</span>
+                </div>
+                <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                    <div class="bg-primary-blue h-full rounded-full" style="width: 78%"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between text-sm font-semibold mb-2">
+                    <span class="text-gray-700">Chitwan</span>
+                    <span class="text-primary-blue">64%</span>
+                </div>
+                <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                    <div class="bg-primary-blue h-full rounded-full" style="width: 64%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+        <h3 class="text-base font-bold text-gray-900 mb-4 tracking-tight">RECENT ACTIVITY</h3>
+        
+        <div class="relative border-l-2 border-blue-100 ml-2 space-y-6 py-2">
+            <div class="mb-4 ml-6 relative">
+                <span class="absolute -left-[31px] top-1 bg-primary-blue w-3 h-3 rounded-full border-2 border-white ring-4 ring-blue-50"></span>
+                <p class="text-sm font-medium text-gray-800">New student registered in Kathmandu</p>
+                <span class="text-xs text-gray-400">1 hrs ago</span>
+            </div>
+            
+            <div class="mb-4 ml-6 relative">
+                <span class="absolute -left-[31px] top-1 bg-blue-400 w-3 h-3 rounded-full border-2 border-white ring-4 ring-blue-50"></span>
+                <p class="text-sm font-medium text-gray-800">Document "Q3_Report.pdf" uploaded</p>
+                <span class="text-xs text-gray-400">3 hrs ago</span>
+            </div>
+            
+            <div class="mb-4 ml-6 relative">
+                <span class="absolute -left-[31px] top-1 bg-blue-400 w-3 h-3 rounded-full border-2 border-white ring-4 ring-blue-50"></span>
+                <p class="text-sm font-medium text-gray-800">Staff update: Shyam Gurung assigned to Kathmandu</p>
+                <span class="text-xs text-gray-400">5 hrs ago</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
