@@ -3,222 +3,336 @@
 {% block content %}
 <div class="header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
     <div>
-        <h1 style="font-size: 24px; font-weight: 700; margin-bottom: 5px;">Branch Management</h1>
+        <h1 style="font-size: 24px; font-weight: 700; margin-bottom: 5px;">Branch Management Hub</h1>
         <p style="color: #64748b; font-size: 14px;">Oversee regional operations and staff allocation across branches.</p>
     </div>
     <div style="display: flex; gap: 15px; align-items: center;">
         <div style="position: relative;">
             <i class="fas fa-search" style="position: absolute; left: 14px; top: 13px; color: #94a3b8;"></i>
-            <input type="text" placeholder="Filter branches..." 
-                   style="padding: 10px 15px 10px 40px; border-radius: 8px; border: 1px solid #e2e8f0; width: 280px; background: #f8fafc;">
+            <input type="text" id="tableFilter" placeholder="Filter branches..." onkeyup="filterTableData()"
+                   style="padding: 10px 15px 10px 40px; border-radius: 8px; border: 1px solid #e2e8f0; width: 280px; background: #f8fafc; outline: none;">
         </div>
         <button onclick="toggleBranchDrawer()" class="create-btn" style="background: #0061f2; color: white; padding: 12px 24px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;">
-            <i class="fas fa-plus" style="margin-right: 8px;"></i> Create New Branch
+            <i class="fas fa-plus" style="margin-right: 8px;"></i> Create New Branch 
         </button>
     </div>
 </div>
 
+{% if messages %}
+<div style="margin-bottom: 25px;">
+    {% for message in messages %}
+    <div style="padding: 15px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; margin-bottom: 10px; {% if message.tags == 'success' %} background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; {% else %} background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; {% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <div class="stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 40px;">
     <div class="stat-card" style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative;">
         <p style="color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase;">Total Branches</p>
-        <div class="number" style="font-size: 32px; font-weight: 700; margin-top: 5px;">{{ branch_count|default:"3" }}</div>
+        <div class="number" style="font-size: 32px; font-weight: 700; margin-top: 5px;">{{ branch_count|default:"0" }}</div>
         <div style="position: absolute; right: 20px; top: 20px; background: #eff6ff; padding: 10px; border-radius: 8px;">
             <i class="fas fa-building" style="color: #3b82f6;"></i>
         </div>
     </div>
     <div class="stat-card" style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative;">
-        <p style="color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase;">Total Staff</p>
-        <div class="number" style="font-size: 32px; font-weight: 700; margin-top: 5px;">{{ staff_count|default:"15" }}</div>
+        <p style="color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase;">Total Staff Members</p>
+        <div id="staff-counter-display" class="number" style="font-size: 32px; font-weight: 700; margin-top: 5px;">{{ managers|length }}</div>
         <div style="position: absolute; right: 20px; top: 20px; background: #eff6ff; padding: 10px; border-radius: 8px;">
             <i class="fas fa-id-badge" style="color: #3b82f6;"></i>
         </div>
     </div>
     <div class="stat-card" style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative;">
         <p style="color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase;">Growth Trend</p>
-        <div class="number" style="font-size: 32px; font-weight: 700; margin-top: 5px; color: #9a3412;">+12%</div>
-        <div style="position: absolute; right: 20px; top: 20px; background: #fff7ed; padding: 10px; border-radius: 8px;">
-            <i class="fas fa-chart-line" style="color: #9a3412;"></i>
+        <div class="number" style="font-size: 32px; font-weight: 700; margin-top: 5px; color: #166534;">+{{ growth_trend|default:"12" }}%</div>
+        <div style="position: absolute; right: 20px; top: 20px; background: #dcfce7; padding: 10px; border-radius: 8px;">
+            <i class="fas fa-chart-line" style="color: #166534;"></i>
         </div>
     </div>
 </div>
 
 <div style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+    <table id="branchStaffTable" style="width: 100%; border-collapse: collapse; text-align: left;">
         <thead style="background: #fcfcfc; border-bottom: 1px solid #e2e8f0;">
             <tr style="color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
                 <th style="padding: 20px 25px;">Branch Name</th>
-                <th style="padding: 20px 25px;">Manager Name</th>
-                <th style="padding: 20px 25px;">Email Address</th>
+                <th style="padding: 20px 25px;">Location / Region</th>
+                <th style="padding: 20px 25px;">Assigned Manager</th>
+                <th style="padding: 20px 25px;">System Profile Email</th>
                 <th style="padding: 20px 25px;">Status</th>
-                <th style="padding: 20px 25px;">Actions</th>
+                <th style="padding: 20px 25px; text-align: right;">Actions</th>
             </tr>
         </thead>
-        <tbody>
-            {% for branch in branches %}
+        <tbody style="background: white;">
+            {% for manager in managers %}
             <tr style="border-bottom: 1px solid #f1f5f9; transition: 0.2s;">
                 <td style="padding: 15px 25px;">
                     <div style="display: flex; align-items: center; gap: 15px;">
                         <div style="width: 36px; height: 36px; background: #dbeafe; color: #1e40af; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px;">
-                            {{ branch.name|slice:":2"|upper }}
+                            {{ manager.branch.branch_name|slice:":2"|upper }}
                         </div>
-                        <div>
-                            <div style="font-weight: 600; color: #1e293b; font-size: 14px;">{{ branch.name }}</div>
-                            <div style="font-size: 12px; color: #64748b;">{{ branch.location|default:"Branch" }}</div>
+                        <div style="font-weight: 600; color: #1e293b; font-size: 14px;">
+                            {{ manager.branch.branch_name }}
                         </div>
                     </div>
                 </td>
-                <td style="padding: 15px 25px; color: #1e293b; font-weight: 500; font-size: 14px;">{{ branch.manager_name|default:"Unassigned" }}</td>
-                <td style="padding: 15px 25px; color: #64748b; font-size: 13px;">{{ branch.email }}</td>
-                <td style="padding: 15px 25px;">
-                    <span style="background: #dcfce7; color: #166534; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">
-                        ● Active
-                    </span>
+                
+                <td style="padding: 15px 25px; color: #475569; font-size: 14px;">
+                    {{ manager.branch.location }}
                 </td>
+                
+                <td style="padding: 15px 25px; color: #1e293b; font-weight: 500; font-size: 14px;">
+                    {% if manager.user.get_full_name %}
+                        {{ manager.user.get_full_name }}
+                    {% else %}
+                        {{ manager.user.username }}
+                    {% endif %}
+                </td>
+                
+                <td style="padding: 15px 25px; color: #64748b; font-size: 13px;">
+                    {{ manager.user.email }}
+                </td>
+                
                 <td style="padding: 15px 25px;">
-                    <div style="display: flex; gap: 18px; color: #94a3b8; font-size: 14px;">
-                        <i class="far fa-eye" style="cursor: pointer;" title="View"></i>
-                        <i class="far fa-edit" style="cursor: pointer;" title="Edit"></i>
-                        <i class="far fa-trash-alt" style="color: #f87171; cursor: pointer;" title="Delete"></i>
+                    {% if manager.user.is_active %}
+                    <span style="background: #dcfce7; color: #166534; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">● Active</span>
+                    {% else %}
+                    <span style="background: #f1f5f9; color: #475569; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">● Suspended</span>
+                    {% endif %}
+                </td>
+                
+                <td style="padding: 15px 25px; text-align: right;">
+                    <div style="display: flex; gap: 18px; color: #94a3b8; font-size: 14px; align-items: center; justify-content: flex-end;">
+                        <a href="{% url 'toggle_user' manager.user.id %}" style="color: inherit; text-decoration: none;" title="Toggle Account Status">
+                            <i class="far {% if manager.user.is_active %}fa-eye{% else %}fa-eye-slash{% endif %}" style="cursor: pointer;"></i>
+                        </a>
+                        <a href="?edit_user={{ manager.user.id }}" style="color: inherit; text-decoration: none;" title="Fast Update User Form">
+                            <i class="far fa-edit" style="cursor: pointer;"></i>
+                        </a>
+                        <button type="button" onclick="openDeletePrompt('{% url 'delete_user' manager.user.id %}', '{{ manager.user.username }}')" style="color: #f87171; background: none; border: none; padding: 0; cursor: pointer;" title="Drop Record Instantly">
+                            <i class="far fa-trash-alt"></i>
+                        </button>
                     </div>
                 </td>
             </tr>
+
+            {% if edit_user_id|add:"0" == manager.user.id %}
+            <tr style="background: #fffbeb; border-bottom: 2px solid #fef08a;">
+                <td colspan="6" style="padding: 20px 25px;">
+                    <form action="{% url 'update_manager' manager.user.id %}" method="POST" style="background: white; border: 1px solid #fef08a; padding: 20px; border-radius: 8px; display: flex; flex-direction: column; gap: 15px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                        {% csrf_token %}
+                        <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #b45309; letter-spacing: 0.5px;">Modify Staff Node Credentials</div>
+                        <div class="inline-form-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+                            {% for field in user_edit_form %}
+                            <div style="display: flex; flex-direction: column; gap: 5px;">
+                                <label style="font-size: 11px; font-weight: 700; color: #64748b;">{{ field.label }}</label>
+                                {{ field }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 5px; border-top: 1px solid #f1f5f9; padding-top: 12px;">
+                            <a href="{% url 'branch_staff' %}" style="padding: 8px 16px; background: #e2e8f0; color: #475569; border-radius: 6px; font-size: 13px; font-weight: 600; text-decoration: none;">Cancel</a>
+                            <button type="submit" style="padding: 8px 18px; background: #d97706; color: white; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer;">Commit Modifications</button>
+                        </div>
+                    </form>
+                </td>
+            </tr>
+            {% endif %}
+
             {% empty %}
             <tr style="border-bottom: 1px solid #f1f5f9;">
-                <td style="padding: 15px 25px;">
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <div style="width: 36px; height: 36px; background: #dbeafe; color: #1e40af; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700;">KA</div>
-                        <div>
-                            <div style="font-weight: 600; color: #1e293b; font-size: 14px;">Kathmandu Dristi Sewa</div>
-                            <div style="font-size: 12px; color: #64748b;">Kathmandu</div>
-                        </div>
+                <td style="padding: 15px 25px;" colspan="6">
+                    <div style="text-align: center; color: #64748b; padding: 20px; font-size: 14px;">
+                        No assigned operational branches found in the registry network.
                     </div>
                 </td>
-                <td style="padding: 15px 25px; font-weight: 500; font-size: 14px;">Rohit Jung Thapa</td>
-                <td style="padding: 15px 25px; color: #64748b; font-size: 13px;">kathmanduDS@gmail.com</td>
-                <td style="padding: 15px 25px;"><span style="background: #dcfce7; color: #166534; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">● Active</span></td>
-                <td style="padding: 15px 25px;"><div style="display: flex; gap: 18px; color: #94a3b8;"><i class="far fa-eye"></i><i class="far fa-edit"></i><i class="far fa-trash-alt" style="color:#f87171"></i></div></td>
-            </tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;">
-                <td style="padding: 15px 25px;">
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <div style="width: 36px; height: 36px; background: #e0f2fe; color: #0369a1; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700;">PO</div>
-                        <div>
-                            <div style="font-weight: 600; color: #1e293b; font-size: 14px;">Pokhara Dristi Sewa</div>
-                            <div style="font-size: 12px; color: #64748b;">Pokhara</div>
-                        </div>
-                    </div>
-                </td>
-                <td style="padding: 15px 25px; font-weight: 500; font-size: 14px;">Nikita Thapa</td>
-                <td style="padding: 15px 25px; color: #64748b; font-size: 13px;">PokharaDS@gmail.com</td>
-                <td style="padding: 15px 25px;"><span style="background: #dcfce7; color: #166534; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">● Active</span></td>
-                <td style="padding: 15px 25px;"><div style="display: flex; gap: 18px; color: #94a3b8;"><i class="far fa-eye"></i><i class="far fa-edit"></i><i class="far fa-trash-alt" style="color:#f87171"></i></div></td>
-            </tr>
-            <tr style="border-bottom: 1px solid #f1f5f9;">
-                <td style="padding: 15px 25px;">
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <div style="width: 36px; height: 36px; background: #f1f5f9; color: #475569; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700;">CH</div>
-                        <div>
-                            <div style="font-weight: 600; color: #1e293b; font-size: 14px;">Chitwan Dristi Sewa</div>
-                            <div style="font-size: 12px; color: #64748b;">Chitwan</div>
-                        </div>
-                    </div>
-                </td>
-                <td style="padding: 15px 25px; font-weight: 500; font-size: 14px;">Puspha Pandit</td>
-                <td style="padding: 15px 25px; color: #64748b; font-size: 13px;">ChitwanDS@gmail.com</td>
-                <td style="padding: 15px 25px;"><span style="background: #f1f5f9; color: #475569; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">● Inactive</span></td>
-                <td style="padding: 15px 25px;"><div style="display: flex; gap: 18px; color: #94a3b8;"><i class="far fa-eye"></i><i class="far fa-edit"></i><i class="far fa-trash-alt" style="color:#f87171"></i></div></td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <div style="padding: 20px 25px; display: flex; justify-content: space-between; align-items: center; background: #fcfcfc;">
-        <span style="font-size: 13px; color: #64748b;">Showing 1-4 of 24 branches</span>
+    <div style="padding: 20px 25px; display: flex; justify-content: space-between; align-items: center; background: #fcfcfc; border-top: 1px solid #e2e8f0;">
+        <span style="font-size: 13px; color: #64748b;">Operational Matrix System Registry Overview</span>
         <div style="display: flex; gap: 8px; align-items: center;">
-            <button style="border: 1px solid #e2e8f0; background: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; color: #64748b;"><i class="fas fa-chevron-left"></i></button>
-            <button style="background: #0061f2; color: white; border: none; padding: 5px 12px; border-radius: 4px; font-weight: 600; cursor: pointer;">1</button>
-            <button style="border: 1px solid #e2e8f0; background: white; padding: 5px 12px; border-radius: 4px; cursor: pointer; color: #64748b;">2</button>
-            <button style="border: 1px solid #e2e8f0; background: white; padding: 5px 12px; border-radius: 4px; cursor: pointer; color: #64748b;">3</button>
-            <button style="border: 1px solid #e2e8f0; background: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; color: #64748b;"><i class="fas fa-chevron-right"></i></button>
+            <button style="border: 1px solid #e2e8f0; background: white; padding: 5px 10px; border-radius: 4px; color: #64748b; cursor: not-allowed;"><i class="fas fa-chevron-left"></i></button>
+            <button style="background: #0061f2; color: white; border: none; padding: 5px 12px; border-radius: 4px; font-weight: 600;">1</button>
+            <button style="border: 1px solid #e2e8f0; background: white; padding: 5px 10px; border-radius: 4px; color: #64748b; cursor: not-allowed;"><i class="fas fa-chevron-right"></i></button>
         </div>
     </div>
 </div>
 
-<div id="drawerOverlay" onclick="toggleBranchDrawer()" style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(4px); z-index: 999; display: none; opacity: 0; transition: opacity 0.3s ease;"></div>
-
-<div id="branchDrawer" style="position: fixed; top: 0; right: 0; height: 100%; wwidth: 100%; max-width: 460px; width: 460px; background: white; box-shadow: -4px 0 24px rgba(0,0,0,0.15); border-left: 1px solid #e2e8f0; z-index: 1000; transform: translateX(100%); transition: transform 0.3s ease-in-out; display: flex; flex-col; flex-direction: column; font-family: 'Segoe UI', Roboto, sans-serif;">
+<div id="deleteModalWrapper" class="fixed inset-0 z-[2000] hidden items-center justify-center p-4">
+    <div onclick="closeDeletePrompt()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
     
-    <form action="{% url 'create_branch' %}" method="POST" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between; margin: 0;">
+    <div class="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all border border-gray-100">
+        <div class="flex items-center gap-4 mb-4">
+            <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                <i class="fas fa-exclamation-triangle text-red-500 text-lg"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-slate-900">Confirm Deletion</h3>
+            
+            </div>
+        </div>
+        
+        <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+            Are you sure you want to completely remove user profile account <span id="deleteModalTargetName" class="font-semibold text-slate-900"></span> from the database registry records?
+        </p>
+        
+        <div class="flex justify-end gap-3 border-t border-gray-50 pt-4">
+            <button type="button" onclick="closeDeletePrompt()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-slate-700 text-sm font-semibold rounded-xl transition">
+                No
+            </button>
+            <a id="deleteModalConfirmButton" href="#" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl shadow-sm shadow-red-200 transition text-center">
+                Yes
+            </a>
+        </div>
+    </div>
+</div>
+
+<div id="drawerOverlay" onclick="toggleBranchDrawer()" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.3); backdrop-filter: blur(4px); z-index: 999; display: none; opacity: 0; transition: opacity 0.3s ease;"></div>
+
+<div id="branchDrawer" style="position: fixed; top: 0; right: 0; height: 100%; max-width: 460px; width: 460px; background: white; box-shadow: -4px 0 24px rgba(0,0,0,0.12); border-left: 1px solid #e2e8f0; z-index: 1000; transform: translateX(100%); transition: transform 0.3s ease-in-out; display: flex; flex-direction: column; font-family: 'Segoe UI', Roboto, sans-serif;">
+    <form action="{% url 'branch_staff' %}" method="POST" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between; margin: 0;">
         {% csrf_token %}
         
         <div style="padding: 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
-            <button type="button" onclick="toggleBranchDrawer()" style="background: none; border: none; font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; transition: 0.2s;">Cancel</button>
-            <button type="submit" style="background: #0061f2; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s;">Save Branch</button>
+            <button type="button" onclick="toggleBranchDrawer()" style="background: none; border: none; font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer;">Cancel</button>
+            <button type="submit" style="background: #0061f2; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Save Account</button>
         </div>
 
-        <div style="flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px;">
-            <p style="color: #64748b; font-size: 13px; margin: 0; line-height: 1.5;">Configure organizational details for the new location.</p>
+        <div style="flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;">
+            <p style="color: #64748b; font-size: 13px; margin: 0; line-height: 1.5;">Configure organizational access credentials to instantiate the branch manager node.</p>
 
-            <div style="display: flex; flex-direction: column; gap: 16px;">
-                <span style="align-self: flex-start; background: #eff6ff; color: #2563eb; font-size: 10px; font-weight: 700; tracking-spacing: 0.5px; text-transform: uppercase; padding: 4px 8px; border-radius: 4px;">Core Details</span>
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+                <span style="align-self: flex-start; background: #eff6ff; color: #2563eb; font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 4px 8px; border-radius: 4px;">Profile Identity</span>
                 
                 <div>
-                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 8px; letter-spacing: 0.5px;">Branch Name</label>
-                    <input type="text" name="name" required placeholder="e.g. Kathmandu Dristi Sewa" 
-                           style="width: 100%; box-sizing: border-box; padding: 12px 16px; background: #f8fafc; border: 1px solid transparent; border-radius: 10px; font-size: 14px; color: #1e293b; outline: none; transition: 0.2s;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 6px; letter-spacing: 0.5px;">Username Identifier</label>
+                    {{ form.username }}
                 </div>
 
-                <div>
-                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 8px; letter-spacing: 0.5px;">Manager Name</label>
-                    <div style="position: relative; display: flex; align-items: center;">
-                        <i class="far fa-user" style="position: absolute; left: 16px; color: #94a3b8; font-size: 14px;"></i>
-                        <input type="text" name="manager_name" placeholder="Assigned executive name" 
-                               style="width: 100%; box-sizing: border-box; padding: 12px 16px 12px 44px; background: #f8fafc; border: 1px solid transparent; border-radius: 10px; font-size: 14px; color: #1e293b; outline: none; transition: 0.2s;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 6px;">First Name</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 6px;">Last Name</label>
+                        {{ form.last_name }}
                     </div>
                 </div>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 16px; border-top: 1px solid #f1f5f9; padding-top: 24px;">
-                <span style="align-self: flex-start; background: #fff7ed; color: #ea580c; font-size: 10px; font-weight: 700; tracking-spacing: 0.5px; text-transform: uppercase; padding: 4px 8px; border-radius: 4px;">System Access</span>
+            <div style="display: flex; flex-direction: column; gap: 14px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+                <span style="align-self: flex-start; background: #fff7ed; color: #ea580c; font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 4px 8px; border-radius: 4px;">System Access & Branch Matrix</span>
 
                 <div>
-                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 8px; letter-spacing: 0.5px;">Email</label>
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 6px;">Email Account Address</label>
                     <div style="position: relative; display: flex; align-items: center;">
-                        <i class="far fa-envelope" style="position: absolute; left: 16px; color: #94a3b8; font-size: 14px;"></i>
-                        <input type="email" name="email" required placeholder="manager@globalbranches.com" 
-                               style="width: 100%; box-sizing: border-box; padding: 12px 16px 12px 44px; background: #f8fafc; border: 1px solid transparent; border-radius: 10px; font-size: 14px; color: #1e293b; outline: none; transition: 0.2s;">
+                        <i class="far fa-envelope" style="position: absolute; left: 16px; color: #94a3b8; font-size: 14px; z-index: 10;"></i>
+                        <input type="email" name="email" required placeholder="manager@dristisewa.com" 
+                               style="width: 100%; box-sizing: border-box; padding: 12px 16px 12px 44px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14px; color: #1e293b; outline: none;">
                     </div>
                 </div>
 
                 <div>
-                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 8px; letter-spacing: 0.5px;">Password</label>
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 6px;">Secure Password Key</label>
                     <div style="position: relative; display: flex; align-items: center;">
-                        <i class="fas fa-lock" style="position: absolute; left: 16px; color: #94a3b8; font-size: 14px;"></i>
-                        <input type="password" id="drawerPassword" name="password" placeholder="••••••••••••" 
-                               style="width: 100%; box-sizing: border-box; padding: 12px 44px 12px 44px; background: #f8fafc; border: 1px solid transparent; border-radius: 10px; font-size: 14px; color: #1e293b; outline: none; transition: 0.2s;">
-                        <button type="button" onclick="togglePasswordVisibility()" style="position: absolute; right: 16px; background: none; border: none; color: #94a3b8; cursor: pointer; display: flex; align-items: center;">
+                        <i class="fas fa-lock" style="position: absolute; left: 16px; color: #94a3b8; font-size: 14px; z-index: 10;"></i>
+                        <input type="password" id="drawerPassword" name="password" required placeholder="••••••••••••" 
+                               style="width: 100%; box-sizing: border-box; padding: 12px 44px 12px 44px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14px; color: #1e293b; outline: none;">
+                        <button type="button" onclick="togglePasswordVisibility()" style="position: absolute; right: 16px; background: none; border: none; color: #94a3b8; cursor: pointer; display: flex; align-items: center; z-index: 10;">
                             <i id="passwordEyeIcon" class="far fa-eye" style="font-size: 14px;"></i>
                         </button>
                     </div>
-                    <p style="color: #94a3b8; font-size: 11px; margin: 8px 0 0 0; font-style: italic;">Must contain at least 12 characters and a symbol.</p>
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 6px;">Assign Target Branch Location</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <div style="flex: 1;" id="branchSelectWrapper">
+                            {{ form.branch }}
+                        </div>
+                        <button type="button" onclick="toggleQuickBranchForm()" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 11px 14px; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px;" title="Create New Location Quick-Form">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="quickBranchContainer" style="display: none; background: #f8fafc; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 10px; margin-top: 5px;">
+                    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #0061f2; margin-bottom: 10px;">Quick Register New Branch Location</div>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <input type="text" id="quickBranchName" placeholder="e.g., Tanahun Dristi Sewa" style="padding: 8px 12px; font-size: 13px;">
+                        <input type="text" id="quickBranchLocation" placeholder="e.g., Damauli, Tanahun" style="padding: 8px 12px; font-size: 13px;">
+                        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 5px;">
+                            <button type="button" onclick="toggleQuickBranchForm()" style="padding: 6px 12px; background: #e2e8f0; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; color: #475569; cursor: pointer;">Cancel</button>
+                            <button type="button" onclick="submitQuickBranch()" style="padding: 6px 12px; background: #0061f2; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; color: white; cursor: pointer;">Add Branch</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #475569; margin-bottom: 6px;">Experience Details / Structural Notes</label>
+                    {{ form.experience_details }}
                 </div>
             </div>
         </div>
     </form>
 </div>
 
+<style>
+    #branchDrawer select, .inline-form-row select,
+    #branchDrawer input[type="text"], .inline-form-row input[type="text"],
+    #branchDrawer textarea, .inline-form-row textarea {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 11px 16px !important;
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 10px !important;
+        font-size: 14px !important;
+        color: #1e293b !important;
+        outline: none !important;
+        transition: all 0.2s ease;
+    }
+    #branchDrawer select:focus, .inline-form-row select:focus,
+    #branchDrawer input:focus, .inline-form-row input:focus {
+        border-color: #0061f2 !important;
+        background: #ffffff !important;
+        box-shadow: 0 0 0 3px rgba(0, 97, 242, 0.15) !important;
+    }
+</style>
+
 <script>
+    const backendStaffCount = parseInt("{{ managers|length }}", 10);
+
+    // Prompt Window Engine Methods
+    function openDeletePrompt(deleteUrl, targetName) {
+        const modal = document.getElementById('deleteModalWrapper');
+        document.getElementById('deleteModalTargetName').textContent = `'${targetName}'`;
+        document.getElementById('deleteModalConfirmButton').setAttribute('href', deleteUrl);
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeDeletePrompt() {
+        const modal = document.getElementById('deleteModalWrapper');
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }
+
     function toggleBranchDrawer() {
         const drawer = document.getElementById('branchDrawer');
         const overlay = document.getElementById('drawerOverlay');
         
         if (drawer.style.transform === 'translateX(0%)') {
-            // Close State Configuration
             drawer.style.transform = 'translateX(100%)';
             overlay.style.opacity = '0';
             setTimeout(() => { overlay.style.display = 'none'; }, 300);
         } else {
-            // Open State Configuration
             overlay.style.display = 'block';
             setTimeout(() => { overlay.style.opacity = '1'; }, 10);
             drawer.style.transform = 'translateX(0%)';
@@ -237,11 +351,118 @@
         }
     }
 
-    // Capture incoming structural navigation signals from the core dashboard
+    function toggleQuickBranchForm() {
+        const container = document.getElementById('quickBranchContainer');
+        container.style.display = container.style.display === 'none' ? 'block' : 'none';
+        if (container.style.display === 'block') {
+            document.getElementById('quickBranchName').focus();
+        }
+    }
+
+    function submitQuickBranch() {
+        const nameInput = document.getElementById('quickBranchName');
+        const locInput = document.getElementById('quickBranchLocation');
+        
+        const branchName = nameInput.value.trim();
+        const location = locInput.value.trim();
+
+        if (!branchName || !location) {
+            alert('Please fill out both Branch Name and Location fields.');
+            return;
+        }
+
+        fetch('/dashboard/branches/create-json/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                'branch_name': branchName,
+                'location': location
+            })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network error setting up location row.');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                const selectElement = document.querySelector('#branchSelectWrapper select');
+                if (selectElement) {
+                    const newOption = document.createElement('option');
+                    newOption.value = data.branch_id;
+                    newOption.text = `${branchName} (${location})`;
+                    newOption.selected = true;
+                    selectElement.add(newOption);
+                }
+                
+                nameInput.value = '';
+                locInput.value = '';
+                toggleQuickBranchForm();
+            } else {
+                alert('Error creating branch: ' + (data.error || 'Unknown event.'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Failed to save branch configuration record asynchronously.');
+        });
+    }
+
+    function filterTableData() {
+        const input = document.getElementById("tableFilter");
+        const filter = input.value.trim().toUpperCase();
+        const table = document.getElementById("branchStaffTable");
+        const tr = table.getElementsByTagName("tr");
+        let visibleRowsCount = 0;
+
+        for (let i = 1; i < tr.length; i++) {
+            if (tr[i].style.background.includes("fffbeb") || tr[i].cells.length < 5) {
+                continue;
+            }
+            
+            let matchFound = false;
+            const branchNameCell = tr[i].cells[0];
+            const locationCell = tr[i].cells[1];
+            const managerCell = tr[i].cells[2];
+            
+            const textContentToSearch = `
+                ${branchNameCell ? branchNameCell.textContent : ''} 
+                ${locationCell ? locationCell.textContent : ''}
+                ${managerCell ? managerCell.textContent : ''}
+            `.toUpperCase();
+            
+            if (textContentToSearch.indexOf(filter) > -1) {
+                matchFound = true;
+            }
+            
+            if (matchFound) {
+                tr[i].style.display = "";
+                visibleRowsCount++;
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+
+        const counterDisplay = document.getElementById("staff-counter-display");
+        if (counterDisplay) {
+            if (filter === "") {
+                counterDisplay.innerText = backendStaffCount;
+            } else {
+                counterDisplay.innerText = visibleRowsCount;
+            }
+        }
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('openDrawer') === 'true') {
             toggleBranchDrawer();
+        }
+        if (urlParams.get('edit_user')) {
+            const editFormRow = document.querySelector('[style*="fffbeb"]');
+            if (editFormRow) editFormRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     });
 </script>
