@@ -1,8 +1,10 @@
 from django.urls import path
 from . import views
 
+app_name = "accounts"
+
 urlpatterns = [
-    # Main Dashboards
+    # Main Dashboards & Auth
     path('login/', views.staff_login, name='staff_login'),
     path('logout/', views.user_logout, name='logout'),
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
@@ -11,13 +13,13 @@ urlpatterns = [
     # Asynchronous API Actions
     path('dashboard/branches/create-json/', views.create_branch_json, name='create_branch_json'),
     
-    # Branch Actions (Create, Update, Delete)
+    # Branch Actions (Create, Update, Delete, Toggle)
     path('branch/create/', views.create_branch, name='create_branch'),
     path('branch/update/<int:branch_id>/', views.update_branch, name='update_branch'),
     path('branch/delete/<int:branch_id>/', views.delete_branch, name='delete_branch'),
     path('branch/toggle/<int:branch_id>/', views.toggle_branch_visibility, name='toggle_branch'),
 
-    # User/Staff Actions (Update, Delete)
+    # User/Staff Actions (Update, Delete, Toggle)
     path('user/update/<int:user_id>/', views.update_manager, name='update_manager'),
     path('user/delete/<int:user_id>/', views.delete_user_account, name='delete_user'),
     path('user/toggle/<int:user_id>/', views.toggle_user_visibility, name='toggle_user'),

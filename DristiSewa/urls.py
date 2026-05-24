@@ -2,17 +2,19 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.shortcuts import redirect
+from django.views.generic import RedirectView
 
 urlpatterns = [
     # 1. Clean Root Redirect: Sends empty root hits (http://127.0.0.1:8000/) directly to staff login
-    path('', lambda request: redirect('staff_login'), name='root_redirect'), 
+    # namespace थपेकाले अब 'accounts:staff_login' लेख्नुपर्छ
+   path('', RedirectView.as_view(pattern_name='accounts:staff_login', permanent=False), name='root_redirect'),
     
     # 2. Core Admin Panel Routing Interface
     path('admin/', admin.site.urls),
     
     # 3. Application URL Inclusions (Keeping prefix empty to avoid 'dashboard/dashboard/' nesting)
-    path('', include('apps.accounts.urls')),
+    # यहाँ namespace='accounts' थपिएको छ ताकि views.py को 'accounts:...' सँग सिङ्क होस्
+    path('', include('apps.accounts.urls', namespace='accounts')),
 ]
 
 # ==============================================================================
