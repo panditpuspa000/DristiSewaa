@@ -8,13 +8,13 @@ from django.views.decorators.csrf import csrf_protect
 from django.utils import timezone
 from datetime import timedelta
 
-# Local imports out of your accounts app models and forms
+# Local database models and stylized forms components
 from .models import User, StudentProfile, Branch, ManagerProfile, FrontDeskProfile
 from .forms import BranchForm, AdminManagerCreationForm
 
-# ==========================================
-# 1. CORE HUB (READ & DISPATCH CONTROL)
-# ==========================================
+# =========================================================
+# 1. CORE ADMIN CONTROL panel HUB (READ & DISPATCH CONTROL)
+# =========================================================
 
 @login_required
 def branch_staff_list(request):
@@ -23,10 +23,11 @@ def branch_staff_list(request):
     Loads structural rows and populates choice dropdowns securely.
     """
     if request.user.role.lower() != 'admin':
+        messages.error(request, "Access unauthorized. Admin permissions required.")
         return redirect('staff_login')
 
-    # Read records out of the database tables
-    branches = Branch.objects.all()
+    # Read records completely with pre-fetched users to save query overhead
+    branches = Branch.objects.all().order_by('-id')
     managers = ManagerProfile.objects.select_related('user', 'branch').all()
     staff_members = FrontDeskProfile.objects.select_related('user', 'branch').all()
     
@@ -45,7 +46,7 @@ def branch_staff_list(request):
         growth_trend = 0
 
     # Handle standard staff member post registration submissions
-    if request.method == 'POST':
+    if request.method == 'POST' and 'create_staff' in request.POST:
         form = AdminManagerCreationForm(request.POST)
         if form.is_valid():
             form.save()
@@ -53,21 +54,36 @@ def branch_staff_list(request):
             return redirect('branch_staff')
     else:
         form = AdminManagerCreationForm()
-        form.fields['branch'].queryset = Branch.objects.all()
 
-    # Capture inline quick editing parameters for selected target rows
+    # Capture inline quick editing parameters for branch rows
     edit_branch_id = request.GET.get('edit_branch')
     branch_edit_form = None
     if edit_branch_id:
         branch_instance = get_object_or_404(Branch, id=edit_branch_id)
         branch_edit_form = BranchForm(instance=branch_instance)
 
+    # Capture inline quick editing parameters for staff accounts
     edit_user_id = request.GET.get('edit_user')
     user_edit_form = None
     if edit_user_id:
         user_instance = get_object_or_404(User, id=edit_user_id)
-        user_edit_form = AdminManagerCreationForm(instance=user_instance)
-        user_edit_form.fields['branch'].queryset = Branch.objects.all()
+        
+        # Pull initial data from profiles dynamically to pre-fill form fields
+        initial_data = {'role': user_instance.role}
+        if user_instance.role == 'manager':
+            profile = ManagerProfile.objects.filter(user=user_instance).first()
+            if profile:
+                initial_data['branch'] = profile.branch
+                initial_data['experience_details'] = getattr(profile, 'experience_details', '')
+        else:
+            profile = FrontDeskProfile.objects.filter(user=user_instance).first()
+            if profile:
+                initial_data['branch'] = profile.branch
+
+        user_edit_form = AdminManagerCreationForm(instance=user_instance, initial=initial_data)
+        # Drop password validation requirements when updating existing profiles
+        if 'password' in user_edit_form.fields:
+            user_edit_form.fields['password'].required = False
 
     context = {
         'form': form,
@@ -77,7 +93,7 @@ def branch_staff_list(request):
         'managers': managers,
         'staff_members': staff_members,
         
-        # Inline parameter injectors for fast field replacements
+        # Inline parameters for interactive model updates
         'edit_branch_id': edit_branch_id,
         'branch_edit_form': branch_edit_form,
         'edit_user_id': edit_user_id,
@@ -86,14 +102,14 @@ def branch_staff_list(request):
     return render(request, 'dashboard/branch_staff.html', context)
 
 
-# ==========================================
+# =========================================================
 # 2. FAST BRANCH CRUD OPERATIONS
-# ==========================================
+# =========================================================
 
 @login_required
 @csrf_protect
 def create_branch_json(request):
-    """ Asynchronously creates a new branch instance via JSON. """
+    """ Asynchronously creates a new branch instance via JSON API. """
     if request.user.role.lower() != 'admin':
         return JsonResponse({'success': False, 'error': 'Unauthorized access session.'}, status=403)
 
@@ -104,24 +120,20 @@ def create_branch_json(request):
             location = data.get('location')
             
             if not branch_name or not location:
-                return JsonResponse({'success': False, 'error': 'Missing required fields.'})
+                return JsonResponse({'success': False, 'error': 'Missing required tracking fields.'})
             
-            branch = Branch.objects.create(
-                branch_name=branch_name,
-                location=location
-            )
+            branch = Branch.objects.create(branch_name=branch_name, location=location)
             return JsonResponse({'success': True, 'branch_id': branch.id})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
             
-    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+    return JsonResponse({'success': False, 'error': 'Invalid request parameters.'})
 
 
 @login_required
 def create_branch(request):
-    """ Fast initialization form processor for a new branch location. """
-    if request.user.role.lower() != 'admin':
-        return redirect('staff_login')
+    """ Form processor to append a new physical branch node entry. """
+    if request.user.role.lower() != 'admin': return redirect('staff_login')
 
     if request.method == 'POST':
         form = BranchForm(request.POST)
@@ -129,15 +141,14 @@ def create_branch(request):
             form.save()
             messages.success(request, f"Branch '{form.cleaned_data['branch_name']}' created successfully!")
         else:
-            messages.error(request, "Error creating branch. Check your input fields.")
+            messages.error(request, "Failed to build branch records. Check field structural shapes.")
     return redirect('branch_staff')
 
 
 @login_required
 def update_branch(request, branch_id):
-    """ Commits alterations to branch rows instantly. """
-    if request.user.role.lower() != 'admin':
-        return redirect('staff_login')
+    """ Commits alterations to branch database entries instantly. """
+    if request.user.role.lower() != 'admin': return redirect('staff_login')
 
     branch = get_object_or_404(Branch, id=branch_id)
     if request.method == 'POST':
@@ -146,49 +157,73 @@ def update_branch(request, branch_id):
             form.save()
             messages.success(request, f"Branch '{branch.branch_name}' updated successfully.")
         else:
-            messages.error(request, "Failed to update branch. Invalid data parameters.")
+            messages.error(request, "Failed to update branch database values.")
     return redirect('branch_staff')
 
 
 @login_required
 def delete_branch(request, branch_id):
-    """ Drops a branch location entry instantly from database. """
-    if request.user.role.lower() != 'admin':
-        return redirect('staff_login')
+    """ Drops a branch location entry safely from the database architecture. """
+    if request.user.role.lower() != 'admin': return redirect('staff_login')
 
     branch = get_object_or_404(Branch, id=branch_id)
     name = branch.branch_name
     branch.delete()
-    messages.success(request, f"Branch '{name}' removed cleanly from database system records.")
+    messages.success(request, f"Branch '{name}' removed cleanly from corporate data records.")
     return redirect('branch_staff')
 
 
-# ==========================================
-# 3. FAST STAFF & USER CRUD OPERATIONS
-# ==========================================
+# =========================================================
+# 3. FAST STAFF & USER PROFILE UPDATE OPERATIONS
+# =========================================================
 
 @login_required
 def update_manager(request, user_id):
     """ Commits core system profile changes for structural managers or desk staff. """
-    if request.user.role.lower() != 'admin':
-        return redirect('staff_login')
+    if request.user.role.lower() != 'admin': return redirect('staff_login')
 
     user_profile = get_object_or_404(User, id=user_id)
     if request.method == 'POST':
         form = AdminManagerCreationForm(request.POST, instance=user_profile)
+        
+        # Remove pass requirement if modifying profile data updates
+        if 'password' in form.fields and not request.POST.get('password'):
+            form.fields['password'].required = False
+            
         if form.is_valid():
-            form.save()
-            messages.success(request, f"Identity records for '{user_profile.username}' successfully updated.")
+            user = form.save(commit=False)
+            if request.POST.get('password'):
+                user.set_password(form.cleaned_data['password'])
+            user.save()
+            
+            target_branch = form.cleaned_data.get('branch')
+            selected_role = form.cleaned_data.get('role', user.role)
+            user.role = selected_role
+            user.save()
+
+            if selected_role == 'manager':
+                FrontDeskProfile.objects.filter(user=user).delete()
+                ManagerProfile.objects.update_or_create(
+                    user=user, 
+                    defaults={
+                        'branch': target_branch,
+                        'experience_details': form.cleaned_data.get('experience_details','')
+                    }
+                )
+            else:
+                ManagerProfile.objects.filter(user=user).delete()
+                FrontDeskProfile.objects.update_or_create(user=user, defaults={'branch': target_branch})
+
+            messages.success(request, f"Identity profile records for '{user.username}' successfully updated.")
         else:
-            messages.error(request, "Update failed. Review requirements and retry.")
+            messages.error(request, "Profile synchronization failed. Check validation parameters.")
     return redirect('branch_staff')
 
 
 @login_required
 def delete_user_account(request, user_id):
     """ Single-click user identity drop action with self-deletion blocks. """
-    if request.user.role.lower() != 'admin':
-        return redirect('staff_login')
+    if request.user.role.lower() != 'admin': return redirect('staff_login')
 
     target_user = get_object_or_404(User, id=user_id)
     if target_user == request.user:
@@ -200,9 +235,9 @@ def delete_user_account(request, user_id):
     return redirect('branch_staff')
 
 
-# ==========================================
+# =========================================================
 # 4. ACTION INTERFACES: VISIBILITY TOGGLES
-# ==========================================
+# =========================================================
 
 @login_required
 def toggle_branch_visibility(request, branch_id):
@@ -213,8 +248,7 @@ def toggle_branch_visibility(request, branch_id):
 
 @login_required
 def toggle_user_visibility(request, user_id):
-    if request.user.role.lower() != 'admin':
-        return redirect('staff_login')
+    if request.user.role.lower() != 'admin': return redirect('staff_login')
         
     target_user = get_object_or_404(User, id=user_id)
     if target_user == request.user:
@@ -227,9 +261,9 @@ def toggle_user_visibility(request, user_id):
     return redirect('branch_staff')
 
 
-# ==========================================
+# =========================================================
 # 5. CORE BASE PORTS & SESSIONS
-# ==========================================
+# =========================================================
 
 def staff_login(request):
     error = None
@@ -238,12 +272,10 @@ def staff_login(request):
         password = request.POST.get('password')
         selected_role = request.POST.get('role')
         
-        # Safeguard: Filter by email and role criteria to handle duplicates safely
         matching_users = User.objects.filter(email=email, role__iexact=selected_role)
         
         if matching_users.exists():
             authenticated_user = None
-            # Validate which profile matches the given credential signature
             for user in matching_users:
                 if user.check_password(password):
                     authenticated_user = user
@@ -251,10 +283,8 @@ def staff_login(request):
             
             if authenticated_user is not None:
                 login(request, authenticated_user)
-                
-                # Dynamic Routing Configuration Matrix
                 if authenticated_user.role.lower() == 'admin': 
-                    return redirect('student_management')
+                    return redirect('admin_dashboard')
                 elif authenticated_user.role.lower() == 'manager': 
                     return redirect('manager_dashboard')
                 else: 
@@ -274,8 +304,7 @@ def user_logout(request):
 
 @login_required
 def admin_dashboard(request):
-    if request.user.role.lower() != 'admin': 
-        return redirect('staff_login')
+    if request.user.role.lower() != 'admin': return redirect('staff_login')
     return render(request, 'dashboard/overview.html', {
         'student_count': StudentProfile.objects.count(),
         'branch_count': Branch.objects.count()
@@ -284,17 +313,11 @@ def admin_dashboard(request):
 
 @login_required
 def student_management(request):
-    """
-    Displays the Student Management matrix layout.
-    Accessible by both Admin and Manager roles.
-    """
-    if request.user.role.lower() not in ['admin', 'manager']: 
-        return redirect('staff_login')
+    if request.user.role.lower() not in ['admin', 'manager']: return redirect('staff_login')
     
     students = StudentProfile.objects.all()
-    
-    # Computing accurate dynamic analytics counts for layout stat badges
     student_count = students.count()
+    
     complete_followups = students.filter(followup_status='complete').count() if hasattr(StudentProfile, 'followup_status') else 25
     pending_followups = students.filter(followup_status='pending').count() if hasattr(StudentProfile, 'followup_status') else 10
     
@@ -308,25 +331,35 @@ def student_management(request):
 
 @login_required
 def manager_dashboard(request):
-    if request.user.role.lower() != 'manager': 
-        return redirect('staff_login')
+    if request.user.role.lower() != 'manager': return redirect('staff_login')
+        
     try:
-        branch = request.user.manager_profile.branch
+        manager_profile = ManagerProfile.objects.select_related('branch').get(user=request.user)
+        branch = manager_profile.branch
         students = StudentProfile.objects.filter(branch=branch)
         staff = FrontDeskProfile.objects.filter(branch=branch)
-    except:
-        branch, students, staff = None, StudentProfile.objects.none(), FrontDeskProfile.objects.none()
+    except (ManagerProfile.DoesNotExist, AttributeError):
+        branch = None
+        students = StudentProfile.objects.none()
+        staff = FrontDeskProfile.objects.none()
+        
+    student_count = students.count()
+    staff_count = staff.count()
+    
+    complete_followups = students.filter(followup_status='complete').count() if hasattr(StudentProfile, 'followup_status') else 0
+    pending_followups = students.filter(followup_status='pending').count() if hasattr(StudentProfile, 'followup_status') else 0
         
     return render(request, 'dashboard/manager.html', {
         'branch': branch, 
-        'student_count': students.count(), 
-        'staff_count': staff.count(), 
-        'students': students
+        'students': students,
+        'student_count': student_count, 
+        'staff_count': staff_count, 
+        'complete_followups': complete_followups,
+        'pending_followups': pending_followups,
     })
 
 
 @login_required
 def front_desk_dashboard(request):
-    if request.user.role.lower() not in ['staff', 'front_desk']: 
-        return redirect('staff_login')
+    if request.user.role.lower() not in ['staff', 'front_desk']: return redirect('staff_login')
     return render(request, 'dashboard/front_desk.html')
