@@ -29,7 +29,7 @@
     </div>
     <div class="divider"><span>Login</span></div>
 
-    <form method="POST" action="{% url 'staff_login' %}">
+    <form method="POST" action="{% url 'accounts:staff_login' %}">
         {% csrf_token %}
         {% if error %}<div class="error">{{ error }}</div>{% endif %}
 
@@ -39,7 +39,7 @@
                 <option value="" disabled selected>Select Role</option>
                 <option value="admin">Admin</option>
                 <option value="manager">Manager</option>
-                <option value="staff">Front Desk</option>
+                <option value="Front Desk">Front Desk</option>
              
             </select>
         </div>
