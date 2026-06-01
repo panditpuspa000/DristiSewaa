@@ -10,7 +10,11 @@ SECRET_KEY = 'django-insecure-(uw(cwz(j=h(%&vy1lu3=oge-e&_=nx(h+al@sfr(=&@da&g^-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# ==============================================================================
+# ALLOWED HOSTS CONFIGURATION
+# ==============================================================================
+# Explicitly allowing local hosts addresses prevents host header validation errors
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'localhost:8000']
 
 # Application definition
 INSTALLED_APPS = [
@@ -108,7 +112,33 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Custom User Model
 AUTH_USER_MODEL = 'accounts.User'
 
-# Redirect links for Login/Logout
-LOGIN_URL = 'staff_login'
-LOGIN_REDIRECT_URL = 'admin_dashboard'
-LOGOUT_REDIRECT_URL = 'staff_login'
+# ==============================================================================
+# FIXED NAMESPACED AUTH ROUTING RULES
+# ==============================================================================
+# Added the 'accounts:' app namespace prefix to match your URL configuration block.
+LOGIN_URL = 'accounts:staff_login'
+LOGOUT_REDIRECT_URL = 'accounts:staff_login'
+LOGIN_REDIRECT_URL = 'accounts:admin_dashboard'
+
+
+# ==============================================================================
+# LOCAL DEVELOPMENT COOKIE, CROSS-PATH, AND CSRF SECURITY RECOVERY ENGINE
+# ==============================================================================
+if DEBUG:
+    # Explicitly trust local development origins to prevent modern browser 403 blocks
+    CSRF_TRUSTED_ORIGINS = [
+        'http://127.0.0.1:8000',
+        'http://localhost:8000',
+    ]
+    
+    # Forces cookies to match valid scopes across all subdirectories and subpaths
+    CSRF_COOKIE_PATH = '/'
+    SESSION_COOKIE_PATH = '/'
+    
+    # Prevents modern browsers from dropping security tokens on internal root domain redirects
+    CSRF_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    
+    # Ensures local unencrypted HTTP development doesn't block cookie storage engines
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
