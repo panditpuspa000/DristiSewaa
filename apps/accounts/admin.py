@@ -26,3 +26,9 @@ class ManagerProfileAdmin(admin.ModelAdmin):
 class FrontDeskProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'branch')
     search_fields = ('user__username', 'branch__branch_name')
+    
+from django.contrib import admin
+from .models import Student, OTPModel
+
+admin.site.register(Student)
+admin.site.register(OTPModel)
