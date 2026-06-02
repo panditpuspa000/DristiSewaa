@@ -61,8 +61,7 @@
             <table id="branchStaffTable" class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                        <th class="px-6 py-4">Branch Name</th>
-                        <th class="px-6 py-4">Location / Region</th>
+                        <th class="px-6 py-4">Branch Details</th>
                         <th class="px-6 py-4">Assigned Manager</th>
                         <th class="px-6 py-4">System Profile Email</th>
                         <th class="px-6 py-4">Status</th>
@@ -71,20 +70,23 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white">
                     {% for manager in managers %}
-                    <tr class="hover:bg-slate-50/80 transition-colors">
+                    <tr class="hover:bg-slate-50/80 transition-colors main-data-row">
+                        <!-- COMBINED BRANCH NAME & LOCATION IN ONE COLUMN -->
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 bg-blue-50 text-blue-700 rounded-xl flex items-center justify-center font-bold text-xs">
+                                <div class="w-9 h-9 bg-blue-50 text-blue-700 rounded-xl flex items-center justify-center font-bold text-xs uppercase">
                                     {{ manager.branch.branch_name|slice:":2"|upper }}
                                 </div>
-                                <div class="font-semibold text-slate-900 text-sm">
-                                    {{ manager.branch.branch_name }}
+                                <div>
+                                    <div class="font-semibold text-slate-900 text-sm">
+                                        {{ manager.branch.branch_name }}
+                                    </div>
+                                    <div class="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                                        <i class="fa-solid fa-location-dot text-[10px] text-slate-300"></i>
+                                        <span>{{ manager.branch.location }}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </td>
-                        
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                            {{ manager.branch.location }}
                         </td>
                         
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">
@@ -128,8 +130,8 @@
 
                     <!-- Inline Row Profile Account Form Editor Layout -->
                     {% if edit_user_id|add:"0" == manager.user.id %}
-                    <tr class="bg-amber-50/50">
-                        <td colspan="6" class="px-6 py-5 border-y border-amber-200">
+                    <tr class="bg-amber-50/50 update-form-row">
+                        <td colspan="5" class="px-6 py-5 border-y border-amber-200">
                             <form action="{% url 'accounts:update_manager' manager.user.id %}" method="POST" class="bg-white border border-amber-200 p-5 rounded-xl shadow-inner flex flex-col gap-4">
                                 {% csrf_token %}
                                 <div class="text-xs font-bold uppercase text-amber-700 tracking-wider">Update Account Details</div>
@@ -152,7 +154,7 @@
 
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="px-6 py-10 text-center text-sm text-slate-500">
+                        <td colspan="5" class="px-6 py-10 text-center text-sm text-slate-500">
                             No assigned operational branches found in the registry network.
                         </td>
                     </tr>
@@ -297,11 +299,11 @@
 
 <!-- Component Framework Injected Overrides Style Block -->
 <style>
-    #branchDrawer select, .bg-amber-50\/50 select,
-    #branchDrawer input[type="text"], .bg-amber-50\/50 input[type="text"],
-    #branchDrawer input[type="email"], .bg-amber-50\/50 input[type="email"],
-    #branchDrawer input[type="password"], .bg-amber-50\/50 input[type="password"],
-    #branchDrawer textarea, .bg-amber-50\/50 textarea {
+    #branchDrawer select, .update-form-row select,
+    #branchDrawer input[type="text"], .update-form-row input[type="text"],
+    #branchDrawer input[type="email"], .update-form-row input[type="email"],
+    #branchDrawer input[type="password"], .update-form-row input[type="password"],
+    #branchDrawer textarea, .update-form-row textarea {
         width: 100% !important;
         box-sizing: border-box !important;
         padding: 10px 14px !important;
@@ -317,8 +319,8 @@
     #branchDrawer input[type="email"] { padding-left: 42px !important; }
     #branchDrawer input[type="password"] { padding-left: 42px !important; padding-right: 42px !important; }
     
-    #branchDrawer select:focus, .bg-amber-50\/50 select:focus,
-    #branchDrawer input:focus, .bg-amber-50\/50 input:focus {
+    #branchDrawer select:focus, .update-form-row select:focus,
+    #branchDrawer input:focus, .update-form-row input:focus {
         border-color: #2563eb !important;
         background-color: #ffffff !important;
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
@@ -429,34 +431,36 @@
         const input = document.getElementById("tableFilter");
         const filter = input.value.trim().toUpperCase();
         const table = document.getElementById("branchStaffTable");
-        const tr = table.getElementsByTagName("tr");
+        const rows = table.querySelectorAll("tbody tr.main-data-row");
         let visibleRowsCount = 0;
 
-        for (let i = 1; i < tr.length; i++) {
-            if (tr[i].classList.contains('bg-amber-50/50') || tr[i].cells.length < 5) {
-                continue;
-            }
-            
-            let matchFound = false;
-            const branchNameCell = tr[i].cells[0];
-            const locationCell = tr[i].cells[1];
-            const managerCell = tr[i].cells[2];
+        rows.forEach(row => {
+            const branchDetailsCell = row.cells[0];
+            const managerCell = row.cells[1];
+            const emailCell = row.cells[2];
             
             const textContentToSearch = `
-                ${branchNameCell ? branchNameCell.textContent : ''} 
-                ${locationCell ? locationCell.textContent : ''}
+                ${branchDetailsCell ? branchDetailsCell.textContent : ''} 
                 ${managerCell ? managerCell.textContent : ''}
+                ${emailCell ? emailCell.textContent : ''}
             `.toUpperCase();
             
-            if (textContentToSearch.indexOf(filter) > -1) { matchFound = true; }
-            
-            if (matchFound) {
-                tr[i].style.display = "";
+            if (textContentToSearch.indexOf(filter) > -1) {
+                row.style.display = "";
                 visibleRowsCount++;
+                // Keep connected edit rows visible if currently active
+                const nextRow = row.nextElementSibling;
+                if (nextRow && nextRow.classList.contains('update-form-row')) {
+                    nextRow.style.display = "";
+                }
             } else {
-                tr[i].style.display = "none";
+                row.style.display = "none";
+                const nextRow = row.nextElementSibling;
+                if (nextRow && nextRow.classList.contains('update-form-row')) {
+                    nextRow.style.display = "none";
+                }
             }
-        }
+        });
 
         const counterDisplay = document.getElementById("staff-counter-display");
         if (counterDisplay) {
@@ -465,10 +469,15 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+        if (window.location.hash === "#create-branch") {
+            toggleBranchDrawer();
+            history.replaceState(null, null, ' '); 
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('openDrawer') === 'true') { toggleBranchDrawer(); }
         if (urlParams.get('edit_user')) {
-            const editFormRow = document.querySelector('.bg-amber-50\\/50');
+            const editFormRow = document.querySelector('.update-form-row');
             if (editFormRow) editFormRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     });

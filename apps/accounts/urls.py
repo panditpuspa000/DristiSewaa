@@ -10,6 +10,9 @@ urlpatterns = [
     path('branch-staff/', views.branch_staff_list, name='branch_staff'),
     path('students/', views.student_management, name='student_management'),
     
+    # 🌟 Added missing front desk dashboard route pattern 
+    path('dashboard/front-desk/', views.front_desk_dashboard, name='front_desk_dashboard'),
+    
     # Branch Operational Handlers
     path('branch/create/', views.create_branch, name='create_branch'),
     path('branch/update/<int:branch_id>/', views.update_branch, name='update_branch'),

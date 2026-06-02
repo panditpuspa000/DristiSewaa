@@ -7,11 +7,11 @@
         <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Overview</h2>
         <p class="text-sm text-slate-500 mt-1">System status and performance metrics</p>
     </div>
-    <!-- Clean Blue Command Action Button -->
-    <button onclick="document.getElementById('branchModal').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition shadow-md shadow-blue-600/10 flex items-center space-x-2 text-sm">
+    <!-- 🌟 REDIRECTS TO BRANCH & STAFF WITH OPEN-SIDEBAR INSTRUCTION HASH -->
+    <a href="{% url 'accounts:branch_staff' %}#create-branch" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition shadow-md shadow-blue-600/10 flex items-center space-x-2 text-sm z-10">
         <i class="fa-solid fa-plus"></i>
         <span>Create New Branch</span>
-    </button>
+    </a>
 </div>
 
 <!-- TOP ANALYSIS CARDS LAYER -->
@@ -30,7 +30,7 @@
             <span>{{ growth_trend|default:"12.5%" }} increase vs last batch</span>
         </div>
         
-        <!-- Background Vector Graphic Mock (Matches Graduation Cap silhouette line art from screenshot) -->
+        <!-- Background Vector Graphic Mock -->
         <div class="absolute right-4 bottom-0 text-[11rem] text-blue-500/20 pointer-events-none transform translate-y-6">
             <i class="fa-solid fa-graduation-cap"></i>
         </div>
@@ -118,55 +118,7 @@
                 <p class="font-semibold text-slate-700">Document "Q3_Report.pdf" uploaded</p>
                 <span class="text-xs text-slate-400">3 hrs ago</span>
             </div>
-            <!-- Timeline Item 3 -->
-            <div class="relative">
-                <span class="absolute -left-[31px] top-1 bg-slate-400 w-3 h-3 rounded-full ring-4 ring-slate-50"></span>
-                <p class="font-semibold text-slate-700">Staff update: Shyam Gurung assigned to Kathmandu</p>
-                <span class="text-xs text-slate-400">5 hrs ago</span>
-            </div>
-            <!-- Timeline Item 4 -->
-            <div class="relative">
-                <span class="absolute -left-[31px] top-1 bg-blue-600 w-3 h-3 rounded-full ring-4 ring-slate-50"></span>
-                <p class="font-semibold text-slate-800">New student registered in Chitwan</p>
-                <span class="text-xs text-slate-400">12 hrs ago</span>
-            </div>
-            <!-- Timeline Item 5 -->
-            <div class="relative">
-                <span class="absolute -left-[31px] top-1 bg-slate-400 w-3 h-3 rounded-full ring-4 ring-slate-50"></span>
-                <p class="font-semibold text-slate-700">Document "Q4_Report.pdf" uploaded</p>
-                <span class="text-xs text-slate-400">yesterday</span>
-            </div>
-            <!-- Timeline Item 6 -->
-            <div class="relative">
-                <span class="absolute -left-[31px] top-1 bg-slate-400 w-3 h-3 rounded-full ring-4 ring-slate-50"></span>
-                <p class="font-semibold text-slate-700">Staff update: Ram Bahadur assigned to Pokhara</p>
-                <span class="text-xs text-slate-400">Tuesday</span>
-            </div>
         </div>
-    </div>
-</div>
-
-<!-- OVERLAY BACKDROP MODAL DRAWER CONTAINER (For New Branch Creation Event Handling) -->
-<div id="branchModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 animate-fade-in">
-    <div class="bg-white border border-slate-200 p-8 rounded-3xl shadow-xl max-w-md w-full mx-4">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-bold text-slate-900">Provision New Node</h3>
-            <button onclick="document.getElementById('branchModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
-        </div>
-        <form action="{% url 'accounts:create_branch' %}" method="POST" class="space-y-4">
-            {% csrf_token %}
-            <div>
-                <label class="block text-xs font-semibold uppercase text-slate-500 mb-1.5">Branch Name</label>
-                <input type="text" name="branch_name" required placeholder="e.g., Kathmandu Central" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-slate-800">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold uppercase text-slate-500 mb-1.5">Location Address</label>
-                <input type="text" name="location" required placeholder="e.g., Putalisadak, Kathmandu" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-slate-800">
-            </div>
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition text-sm mt-2 shadow-md">
-                Deploy Branch
-            </button>
-        </form>
     </div>
 </div>
 {% endblock %}

@@ -28,10 +28,8 @@ def staff_login(request):
         if not password or not selected_role or selected_role.strip() == "Select Role":
             error = "कृपया रोल र पासवर्ड छनौट गर्नुहोस्।"
         else:
-            # Clean up trailing spaces and normalize case from frontend dropdown selection
             role_clean = selected_role.strip().lower()
             
-            # Normalize "Front Desk" spacing / underscore variations across UI and DB structures
             if role_clean in ['front desk', 'staff', 'front_desk', 'frontdesk']:
                 matching_users = User.objects.filter(
                     Q(role__iexact='front desk') | 
@@ -56,18 +54,14 @@ def staff_login(request):
                 if authenticated_user is not None:
                     login(request, authenticated_user)
                     
-                    # 🚀 HARD ROUTING HIJACK FOR THE TEST ACCOUNT
                     if authenticated_user.username == 'admin_test':
                         return redirect('accounts:admin_dashboard')
                     
-                    # 🚀 ABSOLUTE DOMINANCE BYPASS FOR SUPERUSERS / STAFF PRIVILEGES
                     if authenticated_user.is_superuser or authenticated_user.is_staff:
                         return redirect('accounts:admin_dashboard')
                     
-                    # Read database text strings with safety fallback
                     user_role_db = authenticated_user.role.lower().strip() if authenticated_user.role else ''
                     
-                    # Fuzzy-match routing blocks to swallow minor space or casing variations
                     if 'admin' in user_role_db: 
                         return redirect('accounts:admin_dashboard')
                     elif 'manager' in user_role_db: 
@@ -79,7 +73,6 @@ def staff_login(request):
                 else:
                     error = "पासवर्ड मिलेन। कृपया सही पासवर्ड राख्नुहोस्।"
             else:
-                # Fallback safeguard: Let superusers authenticate directly by email to prevent lockouts.
                 if email:
                     fallback_admin = User.objects.filter(email__iexact=email.strip(), is_active=True).first()
                     if fallback_admin and fallback_admin.check_password(password) and (fallback_admin.is_superuser or fallback_admin.is_staff):
@@ -103,22 +96,14 @@ def user_logout(request):
 
 @login_required
 def admin_dashboard(request):
-    """
-    Centralized Core Dashboard: Handles routing parameters to load either 
-    the basic metrics analytics home screen OR specific branch management loops.
-    """
-    # Hardcoded bypass for the developer profile rule checking logic
     if request.user.username == 'admin_test':
         pass
-    # Rigid security rule guarding admin endpoints against normal profile accounts
     elif not request.user.is_superuser and getattr(request.user, 'role', '').lower().strip() != 'admin':
         return redirect('accounts:staff_login')
         
-    # --- ROUTE B: Render Branch Staff Table View explicitly if requested ---
     if request.GET.get('view') == 'staff':
         return redirect('accounts:branch_staff')
         
-    # --- ROUTE A: Default landing display ---
     all_managers = ManagerProfile.objects.select_related('user', 'branch').all().order_by('-id')
     total_students = StudentProfile.objects.count()
     total_branches = Branch.objects.count()
@@ -175,6 +160,27 @@ def branch_staff_list(request):
             messages.success(request, "Staff account generated and assigned successfully!")
             return redirect('accounts:branch_staff')
     
+    # --- INLINE EDIT PROCESSOR ---
+    edit_user_id = request.GET.get('edit_user')
+    user_edit_form = None
+
+    if edit_user_id:
+        target_user = get_object_or_404(User, id=edit_user_id)
+        initial_data = {}
+        manager_profile = ManagerProfile.objects.filter(user=target_user).first()
+        fd_profile = FrontDeskProfile.objects.filter(user=target_user).first()
+        
+        if manager_profile:
+            initial_data['branch'] = manager_profile.branch
+            initial_data['experience_details'] = getattr(manager_profile, 'experience_details', '')
+        elif fd_profile:
+            initial_data['branch'] = fd_profile.branch
+
+        user_edit_form = AdminManagerCreationForm(instance=target_user, initial=initial_data)
+        
+        if 'password' in user_edit_form.fields:
+            user_edit_form.fields['password'].required = False
+            
     # Render branch staff layout logic
     branches = Branch.objects.all().order_by('-id')
     managers = ManagerProfile.objects.select_related('user', 'branch').all()
@@ -190,7 +196,9 @@ def branch_staff_list(request):
         'branches': branches,
         'managers': managers,
         'staff_members': staff_members,
-        'form': AdminManagerCreationForm()
+        'form': AdminManagerCreationForm(),
+        'edit_user_id': edit_user_id,
+        'user_edit_form': user_edit_form,
     })
 
 
@@ -200,7 +208,6 @@ def branch_staff_list(request):
 
 @login_required
 def manager_dashboard(request):
-    """ Default View: Renders simple, tailored student pipeline directory details. """
     if request.user.role.lower() != 'manager': 
         return redirect('accounts:staff_login')
         
@@ -227,7 +234,6 @@ def manager_dashboard(request):
 
 @login_required
 def frontdesk_management(request):
-    """ Isolated Template View: Displays simple, flat front desk user credential lists. """
     if request.user.role.lower() != 'manager':
         return redirect('accounts:staff_login')
 
@@ -251,7 +257,6 @@ def frontdesk_management(request):
 
 @login_required
 def student_management(request):
-    """ Handles retrieval and filtering of student directory profiles. """
     user_role = request.user.role.lower().strip()
     
     if user_role == 'admin' or request.user.is_superuser or request.user.username == 'admin_test':
@@ -281,7 +286,6 @@ def student_management(request):
 @login_required
 @csrf_protect
 def create_branch_json(request):
-    """ Asynchronously creates a new branch instance via JSON API. """
     if request.user.username != 'admin_test' and not request.user.is_superuser and getattr(request.user, 'role', '').lower().strip() != 'admin':
         return JsonResponse({'success': False, 'error': 'Unauthorized access session.'}, status=403)
 
@@ -319,7 +323,6 @@ def create_branch(request):
 
 @login_required
 def update_branch(request, branch_id):
-    """ Commits alterations to branch database entries instantly. """
     if request.user.username != 'admin_test' and not request.user.is_superuser and getattr(request.user, 'role', '').lower().strip() != 'admin':
         return redirect('accounts:staff_login')
 
@@ -336,7 +339,6 @@ def update_branch(request, branch_id):
 
 @login_required
 def toggle_branch_visibility(request, branch_id):
-    """ Toggles branch activation status. """
     if request.user.username != 'admin_test' and not request.user.is_superuser and getattr(request.user, 'role', '').lower().strip() != 'admin':
         return redirect('accounts:staff_login')
         
@@ -354,7 +356,6 @@ def toggle_branch_visibility(request, branch_id):
 
 @login_required
 def delete_branch(request, branch_id):
-    """ Drops a branch location entry safely from the database architecture. """
     if request.user.username != 'admin_test' and not request.user.is_superuser and getattr(request.user, 'role', '').lower().strip() != 'admin':
         return redirect('accounts:staff_login')
 
@@ -367,7 +368,6 @@ def delete_branch(request, branch_id):
 
 @login_required
 def toggle_user_visibility(request, user_id):
-    """ Toggles user activation status (is_active) safely. """
     if request.user.username != 'admin_test' and not request.user.is_superuser and getattr(request.user, 'role', '').lower().strip() != 'admin':
         return redirect('accounts:staff_login')
         
@@ -434,6 +434,23 @@ def delete_user_account(request, user_id):
 
 @login_required
 def front_desk_dashboard(request):
-    if request.user.role.lower() not in ['staff', 'front desk', 'front_desk', 'frontdesk']: 
+    user_role = request.user.role.lower().strip() if request.user.role else ''
+    
+    if user_role not in ['staff', 'front desk', 'front_desk', 'frontdesk']: 
         return redirect('accounts:staff_login')
-    return render(request, 'dashboard/front_desk_dashboard.html')
+        
+    try:
+        fd_profile = FrontDeskProfile.objects.select_related('branch').get(user=request.user)
+        branch = fd_profile.branch
+        students = StudentProfile.objects.filter(branch=branch).order_by('-id')
+    except FrontDeskProfile.DoesNotExist:
+        branch = None
+        students = StudentProfile.objects.none()
+
+    student_count = students.count()
+    
+    return render(request, 'dashboard/front_desk_dashboard.html', {
+        'branch': branch,
+        'students': students,
+        'student_count': student_count,
+    })
