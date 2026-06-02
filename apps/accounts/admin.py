@@ -1,34 +1,23 @@
 from django.contrib import admin
-from .models import User, Branch, ManagerProfile, FrontDeskProfile
+from django.contrib.auth.admin import UserAdmin
+from .models import User, Branch, StudentProfile, ManagerProfile, FrontDeskProfile
 
-@admin.register(User)
-class CustomUserAdmin(admin.ModelAdmin):
-    # Columns to display in the data table list view
-    list_display = ('username', 'email', 'role', 'is_active', 'is_staff')
-    # Interactive filtering options on the right sidebar
-    list_filter = ('role', 'is_active', 'is_staff')
-    # Search box configuration targeting profile identifiers
-    search_fields = ('username', 'email')
-    ordering = ('username',)
+class CustomUserAdmin(UserAdmin):
+    model = User
+    # Display the custom fields neatly in the admin detail view panels
+    fieldsets = UserAdmin.fieldsets + (
+        ('DristiSewa Role Customizations', {
+            'fields': ('role', 'phone_number', 'address', 'profile_image')
+        }),
+    )
+    # Customize columns shown on the User list page
+    list_display = ['username', 'email', 'role', 'is_staff', 'is_active']
+    list_filter = ['role', 'is_staff', 'is_active']
+    search_fields = ['username', 'email', 'phone_number']
 
-@admin.register(Branch)
-class BranchAdmin(admin.ModelAdmin):
-    list_display = ('id', 'branch_name', 'location')
-    search_fields = ('branch_name', 'location')
-    ordering = ('id',)
-
-@admin.register(ManagerProfile)
-class ManagerProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'branch')
-    search_fields = ('user__username', 'branch__branch_name')
-
-@admin.register(FrontDeskProfile)
-class FrontDeskProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'branch')
-    search_fields = ('user__username', 'branch__branch_name')
-    
-from django.contrib import admin
-from .models import Student, OTPModel
-
-admin.site.register(Student)
-admin.site.register(OTPModel)
+# Register the models into the Django Administration dashboard
+admin.site.register(User, CustomUserAdmin)
+admin.site.register(Branch)
+admin.site.register(StudentProfile)
+admin.site.register(ManagerProfile)
+admin.site.register(FrontDeskProfile)
