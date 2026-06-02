@@ -1,9 +1,6 @@
 from django import forms
 from .models import User, Branch, ManagerProfile, FrontDeskProfile
 
-# =========================================================
-# 1. BRANCH MANAGEMENT REGISTRATION FORM
-# =========================================================
 class BranchForm(forms.ModelForm):
     class Meta:
         model = Branch
@@ -21,10 +18,6 @@ class BranchForm(forms.ModelForm):
         if 'manager' in self.fields:
             self.fields['manager'].empty_label = "Select an available manager account..."
 
-
-# =========================================================
-# 2. COMPLETE ADMIN-SIDE STAFF & MANAGER GENERATION FORM
-# =========================================================
 class AdminManagerCreationForm(forms.ModelForm):
     # Form password input matching user interface styling guidelines
     password = forms.CharField(widget=forms.PasswordInput(attrs={

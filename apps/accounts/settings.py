@@ -101,10 +101,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # DEFAULT AUTO FIELD
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-# =========================
-# EMAIL CONFIG (OTP SYSTEM)
-# =========================
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 EMAIL_HOST = 'smtp.gmail.com'
@@ -115,11 +111,6 @@ EMAIL_HOST_USER = 'dristisewa3@gmail.com'
 EMAIL_HOST_PASSWORD = 'bhun vtjc twxm xxze'  # Gmail App Password
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
-
-# =========================
-# SECURITY IMPROVEMENT (OPTIONAL BUT GOOD)
-# =========================
 
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
