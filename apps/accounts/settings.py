@@ -101,17 +101,22 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # DEFAULT AUTO FIELD
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
+# ==============================================================================
+# SMTP GMAIL BACKEND DISPATCH CONFIGURATION NETWORK
+# ==============================================================================
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 EMAIL_HOST_USER = 'dristisewa3@gmail.com'
-EMAIL_HOST_PASSWORD = 'bhun vtjc twxm xxze'  # Gmail App Password
+EMAIL_HOST_PASSWORD = 'bhunvtjctwxmxxze'  # Spaces removed for safe authentication layout
 
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = f"DristiSewa Platform <{EMAIL_HOST_USER}>"
 
+
+# SECURITY CONFIGURATIONS
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 

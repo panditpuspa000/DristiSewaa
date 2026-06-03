@@ -3,10 +3,8 @@
 {% block title %}Branch & Staff Management - DristiSewa{% endblock %}
 
 {% block content %}
-<!-- Main Content Container configured for base.html Grid Workspace Layout -->
 <div class="w-full">
 
-    <!-- Header Section -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
             <h1 class="text-3xl font-black tracking-tight text-slate-950">Branch & Staff</h1>
@@ -24,12 +22,11 @@
         </div>
     </div>
 
-    <!-- Metrics Matrix System Overview Grid -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative flex items-center justify-between">
             <div>
                 <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Branches</p>
-                <div class="text-3xl font-bold text-slate-800 mt-2">{{ branch_count|default:"0" }}</div>
+                <div id="branch-counter-display" class="text-3xl font-bold text-slate-800 mt-2">{{ branch_count|default:"0" }}</div>
             </div>
             <div class="bg-blue-50 text-blue-600 p-3.5 rounded-xl">
                 <i class="fa-solid fa-building text-lg"></i>
@@ -55,7 +52,6 @@
         </div>
     </div>
 
-    <!-- Main Data Table Block -->
     <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table id="branchStaffTable" class="w-full text-left border-collapse">
@@ -71,7 +67,6 @@
                 <tbody class="divide-y divide-slate-100 bg-white">
                     {% for manager in managers %}
                     <tr class="hover:bg-slate-50/80 transition-colors main-data-row">
-                        <!-- COMBINED BRANCH NAME & LOCATION IN ONE COLUMN -->
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center gap-3">
                                 <div class="w-9 h-9 bg-blue-50 text-blue-700 rounded-xl flex items-center justify-center font-bold text-xs uppercase">
@@ -128,7 +123,6 @@
                         </td>
                     </tr>
 
-                    <!-- Inline Row Profile Account Form Editor Layout -->
                     {% if edit_user_id|add:"0" == manager.user.id %}
                     <tr class="bg-amber-50/50 update-form-row">
                         <td colspan="5" class="px-6 py-5 border-y border-amber-200">
@@ -163,9 +157,10 @@
             </table>
         </div>
 
-        <!-- Table Footer Layout Pagination -->
         <div class="px-6 py-4 flex items-center justify-between bg-slate-50 border-t border-slate-200">
-            <span class="text-xs text-slate-500">Showing registered system branches and staff management indexes.</span>
+            <span class="text-xs text-slate-500">
+                Showing <span id="visible-rows-label">{{ managers|length }}</span> of {{ managers|length }} registered system branches.
+            </span>
             <div class="flex items-center gap-1">
                 <button class="p-1.5 border border-slate-200 bg-white rounded-lg text-slate-400 cursor-not-allowed"><i class="fa-solid fa-chevron-left text-xs"></i></button>
                 <button class="px-3 py-1 bg-blue-600 text-white rounded-lg text-xs font-semibold">1</button>
@@ -175,7 +170,6 @@
     </div>
 </div>
 
-<!-- Modal Framework Wrapper -->
 <div id="deleteModalWrapper" class="fixed inset-0 z-[2000] hidden items-center justify-center p-4">
     <div onclick="closeDeletePrompt()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
     <div class="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all border border-slate-100">
@@ -201,10 +195,8 @@
     </div>
 </div>
 
-<!-- Slide-Out Sidebar Registration Drawer Layout Overlay -->
 <div id="drawerOverlay" onclick="toggleBranchDrawer()" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-[998] hidden opacity-0 transition-opacity duration-300"></div>
 
-<!-- Quick Creation System Node Slider Panel Component -->
 <div id="branchDrawer" class="fixed top-0 right-0 h-full w-[460px] max-w-full bg-white shadow-2xl border-l border-slate-200 z-[999] translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
     <form action="{% url 'accounts:branch_staff' %}" method="POST" class="h-full flex flex-col justify-between m-0">
         {% csrf_token %}
@@ -297,7 +289,6 @@
     </form>
 </div>
 
-<!-- Component Framework Injected Overrides Style Block -->
 <style>
     #branchDrawer select, .update-form-row select,
     #branchDrawer input[type="text"], .update-form-row input[type="text"],
@@ -327,7 +318,6 @@
     }
 </style>
 
-<!-- Operational JavaScript Logic Component Engine -->
 <script>
     const backendStaffCount = parseInt("{{ managers|length }}", 10);
 
@@ -448,7 +438,6 @@
             if (textContentToSearch.indexOf(filter) > -1) {
                 row.style.display = "";
                 visibleRowsCount++;
-                // Keep connected edit rows visible if currently active
                 const nextRow = row.nextElementSibling;
                 if (nextRow && nextRow.classList.contains('update-form-row')) {
                     nextRow.style.display = "";
@@ -465,6 +454,11 @@
         const counterDisplay = document.getElementById("staff-counter-display");
         if (counterDisplay) {
             counterDisplay.innerText = (filter === "") ? backendStaffCount : visibleRowsCount;
+        }
+
+        const labelDisplay = document.getElementById("visible-rows-label");
+        if (labelDisplay) {
+            labelDisplay.innerText = (filter === "") ? backendStaffCount : visibleRowsCount;
         }
     }
 

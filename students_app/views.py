@@ -29,11 +29,11 @@ def register(request):
 
         if password != confirm_password:
             messages.error(request, "Passwords do not match")
-            return redirect('register')
+            return render(request, 'students_app/register.html')
 
         if User.objects.filter(username=email).exists():
             messages.error(request, "Email already registered")
-            return redirect('register')
+            return render(request, 'students_app/register.html')
 
         # GENERATE OTP
         otp = str(random.randint(100000, 999999))
@@ -93,18 +93,22 @@ def verify_otp(request):
                     password=request.session.get('password'),
                     first_name=request.session.get('first_name'),
                     last_name=request.session.get('last_name'),
-                    role='student'  # Explicitly sets the student role attribute
+                    role='student'
                 )
 
-                # CLEAR SESSION
-                request.session.flush()
+                # ✅ FIXED: Pop individual keys instead of using flush().
+                # This protects your CSRF token tracking context from breaking mid-request.
+                keys_to_clear = ['first_name', 'last_name', 'password', 'email']
+                for key in keys_to_clear:
+                    if key in request.session:
+                        del request.session[key]
 
                 messages.success(request, "Account created successfully!")
                 return redirect('login')
 
             else:
                 messages.error(request, "Invalid OTP")
-                return redirect('verify_otp')
+                return render(request, 'students_app/otp_verification.html')
 
         except OTPModel.DoesNotExist:
             messages.error(request, "OTP not found")
@@ -122,16 +126,15 @@ def login_view(request):
         user = authenticate(request, username=email, password=password)
 
         if user:
-            # Block staff, managers, or admins from entering student portal
             if user.role == 'student':
                 login(request, user)
                 return redirect('dashboard')
             else:
                 messages.error(request, "This login portal is exclusively for students.")
-                return redirect('login')
+                return render(request, 'students_app/login.html')
 
         messages.error(request, "Invalid credentials")
-        return redirect('login')
+        return render(request, 'students_app/login.html')
 
     return render(request, 'students_app/login.html')
 
@@ -139,7 +142,6 @@ def login_view(request):
 # DASHBOARD
 @login_required
 def dashboard(request):
-    # Additional security layer for direct URL typing
     if request.user.role != 'student':
         logout(request)
         messages.error(request, "Unauthorized access dashboard.")

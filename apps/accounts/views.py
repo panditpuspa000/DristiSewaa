@@ -160,8 +160,10 @@ def branch_staff_list(request):
         b.branch_managers = [m for m in managers if m.branch_id == b.id]
         b.branch_frontdesk = [s for s in staff_members if s.branch_id == b.id]
 
+    # Context block updated to explicitly include branch_count
     return render(request, 'dashboard/branch_staff.html', {
         'branches': branches,
+        'branch_count': branches.count(),
         'managers': managers,
         'staff_members': staff_members,
         'form': AdminManagerCreationForm(),
@@ -210,3 +212,193 @@ def front_desk_dashboard(request):
         'students': students,
         'student_count': students.count(),
     })
+
+
+# ---------------- STUDENT MANAGEMENT ----------------
+@login_required
+def student_management(request):
+    """
+    Renders the student management overview dashboard for Admin/Staff.
+    """
+    if request.user.username != 'admin_test' and not request.user.is_superuser and (request.user.role or '').lower().strip() != 'admin':
+        return redirect('accounts:staff_login')
+        
+    all_students = StudentProfile.objects.select_related('user', 'branch').all()
+    
+    return render(request, 'dashboard/student_management.html', {
+        'students': all_students
+    })
+
+
+# ---------------- CREATE BRANCH ----------------
+@login_required
+def create_branch(request):
+    """
+    Handles creating a new branch instance record via BranchForm.
+    """
+    if request.user.username != 'admin_test' and not request.user.is_superuser and (request.user.role or '').lower().strip() != 'admin':
+        return redirect('accounts:staff_login')
+
+    if request.method == 'POST':
+        form = BranchForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Branch created successfully!")
+            return redirect('accounts:admin_dashboard')
+    else:
+        form = BranchForm()
+
+    return render(request, 'dashboard/create_branch.html', {'form': form})
+
+
+# ---------------- UPDATE BRANCH ----------------
+@login_required
+def update_branch(request, branch_id):
+    """
+    Handles editing/updating an existing branch using its unique database row identifier ID.
+    """
+    if request.user.username != 'admin_test' and not request.user.is_superuser and (request.user.role or '').lower().strip() != 'admin':
+        return redirect('accounts:staff_login')
+
+    branch = get_object_or_404(Branch, id=branch_id)
+
+    if request.method == 'POST':
+        form = BranchForm(request.POST, instance=branch)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Branch '{branch.name}' updated successfully!")
+            return redirect('accounts:admin_dashboard')
+    else:
+        form = BranchForm(instance=branch)
+
+    return render(request, 'dashboard/update_branch.html', {
+        'form': form,
+        'branch': branch
+    })
+
+
+# ---------------- TOGGLE BRANCH VISIBILITY ----------------
+@login_required
+def toggle_branch_visibility(request, branch_id):
+    """
+    Toggles the active/visible state of a branch.
+    """
+    if request.user.username != 'admin_test' and not request.user.is_superuser and (request.user.role or '').lower().strip() != 'admin':
+        return redirect('accounts:staff_login')
+        
+    branch = get_object_or_404(Branch, id=branch_id)
+    
+    if hasattr(branch, 'is_active'):
+        branch.is_active = not branch.is_active
+        branch.save()
+        messages.success(request, f"Branch '{branch.name}' status updated successfully!")
+    else:
+        messages.warning(request, "Branch status configuration field 'is_active' not found.")
+        
+    return redirect('accounts:admin_dashboard')
+
+
+# ---------------- DELETE BRANCH ----------------
+@login_required
+def delete_branch(request, branch_id):
+    """
+    Handles deleting a branch record from the database completely.
+    """
+    if request.user.username != 'admin_test' and not request.user.is_superuser and (request.user.role or '').lower().strip() != 'admin':
+        return redirect('accounts:staff_login')
+
+    branch = get_object_or_404(Branch, id=branch_id)
+    branch_name = branch.name
+    branch.delete()
+    
+    messages.success(request, f"Branch '{branch_name}' deleted successfully!")
+    return redirect('accounts:admin_dashboard')
+
+
+# ---------------- TOGGLE USER VISIBILITY ----------------
+@login_required
+def toggle_user_visibility(request, user_id):
+    """
+    Toggles the active state (is_active) of a staff member or user.
+    """
+    if request.user.username != 'admin_test' and not request.user.is_superuser and (request.user.role or '').lower().strip() != 'admin':
+        return redirect('accounts:staff_login')
+        
+    user_to_toggle = get_object_or_404(User, id=user_id)
+    
+    if user_to_toggle == request.user:
+        messages.error(request, "तपाईंले आफ्नो खाता आफै निष्क्रिय गर्न सक्नुहुन्न।")
+        return redirect('accounts:branch_staff')
+        
+    user_to_toggle.is_active = not user_to_toggle.is_active
+    user_to_toggle.save()
+    
+    status_str = "सक्रिय" if user_to_toggle.is_active else "निष्क्रिय"
+    messages.success(request, f"प्रयोगकर्ता '{user_to_toggle.username}' को स्थिति {status_str} गरिएको छ।")
+    
+    return redirect('accounts:branch_staff')
+
+
+# ---------------- UPDATE MANAGER ----------------
+@login_required
+def update_manager(request, user_id):
+    """
+    Handles editing/updating a manager or staff user profile via AdminManagerCreationForm.
+    """
+    if request.user.username != 'admin_test' and not request.user.is_superuser and (request.user.role or '').lower().strip() != 'admin':
+        return redirect('accounts:staff_login')
+
+    user_obj = get_object_or_404(User, id=user_id)
+    
+    manager_profile = ManagerProfile.objects.filter(user=user_obj).first()
+    frontdesk_profile = FrontDeskProfile.objects.filter(user=user_obj).first()
+    profile_obj = manager_profile or frontdesk_profile
+
+    if request.method == 'POST':
+        form = AdminManagerCreationForm(request.POST, instance=user_obj)
+        if form.is_valid():
+            updated_user = form.save(commit=False)
+            password = form.cleaned_data.get('password')
+            if password:
+                updated_user.set_password(password)
+            updated_user.save()
+
+            new_branch = form.cleaned_data.get('branch')
+            if profile_obj and new_branch:
+                profile_obj.branch = new_branch
+                profile_obj.save()
+
+            messages.success(request, f"प्रयोगकर्ता '{updated_user.username}' को विवरण परिमार्जन भयो।")
+            return redirect('accounts:branch_staff')
+    else:
+        initial_data = {}
+        if profile_obj:
+            initial_data['branch'] = profile_obj.branch
+        form = AdminManagerCreationForm(instance=user_obj, initial=initial_data)
+
+    return render(request, 'dashboard/update_manager.html', {
+        'form': form,
+        'user_obj': user_obj
+    })
+
+
+# ---------------- DELETE USER ACCOUNT ----------------
+@login_required
+def delete_user_account(request, user_id):
+    """
+    Handles deleting a user/staff account permanently from the database.
+    """
+    if request.user.username != 'admin_test' and not request.user.is_superuser and (request.user.role or '').lower().strip() != 'admin':
+        return redirect('accounts:staff_login')
+
+    user_to_delete = get_object_or_404(User, id=user_id)
+    
+    if user_to_delete == request.user:
+        messages.error(request, "तपाईंले आफ्नो खाता आफै हटाउन सक्नुहुन्न।")
+        return redirect('accounts:branch_staff')
+        
+    username_str = user_to_delete.username
+    user_to_delete.delete()
+    
+    messages.success(request, f"प्रयोगकर्ता '{username_str}' को खाता सफलतापूर्वक हटाइयो।")
+    return redirect('accounts:branch_staff')

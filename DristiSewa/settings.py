@@ -81,7 +81,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kathmandu'  # ✅ FIXED: Synced with your local region for correct OTP timestamps
 USE_I18N = True
 USE_TZ = True
 
@@ -134,5 +134,14 @@ if DEBUG:
     CSRF_COOKIE_SECURE = False
     SESSION_COOKIE_SECURE = False
 
-    # FIXED: Directs all sent emails/OTPs straight into the VS Code terminal logs
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    # ==============================================================================
+    # SMTP GMAIL BACKEND DISPATCH CONFIGURATION NETWORK
+    # ==============================================================================
+    # ✅ FIXED: Replaced 'console' with active production delivery so registration OTPs are actually sent
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = 'panditpuspa000@gmail.com'
+    EMAIL_HOST_PASSWORD = 'rpnandvoiairdgym'
+    DEFAULT_FROM_EMAIL = f"DristiSewa Platform <{EMAIL_HOST_USER}>"
