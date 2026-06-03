@@ -13,7 +13,6 @@ DEBUG = True
 # ==============================================================================
 # ALLOWED HOSTS CONFIGURATION
 # ==============================================================================
-# Explicitly allowing local hosts addresses prevents host header validation errors
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'localhost:8000']
 
 # Application definition
@@ -29,6 +28,9 @@ INSTALLED_APPS = [
     'apps.accounts',
     'apps.consultancy',
     'apps.notifications',
+    
+    # Student App Setup
+    'students_app',
 ]
 
 MIDDLEWARE = [
@@ -86,40 +88,29 @@ USE_TZ = True
 # ==============================================================================
 # STATIC & MEDIA FILES CONFIGURATIONS
 # ==============================================================================
-
-# UPDATED: Added leading slash to resolve absolute static routing asset paths correctly
 STATIC_URL = '/static/'
 
-# This tells Django where to look for your global static folder at the root level
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
-# The directory where collectstatic will gather files for production
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Media files (User uploaded content like profile pictures)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # ==============================================================================
 # AUTHENTICATION & SECURITY SETTINGS
 # ==============================================================================
-
-# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Custom User Model
 AUTH_USER_MODEL = 'accounts.User'
 
 # ==============================================================================
 # FIXED NAMESPACED AUTH ROUTING RULES
 # ==============================================================================
-# Added the 'accounts:' app namespace prefix to match your URL configuration block.
 LOGIN_URL = 'accounts:staff_login'
 LOGOUT_REDIRECT_URL = 'accounts:staff_login'
 LOGIN_REDIRECT_URL = 'accounts:admin_dashboard'
-
 
 # ==============================================================================
 # LOCAL DEVELOPMENT COOKIE, CROSS-PATH, AND CSRF SECURITY RECOVERY ENGINE
@@ -142,3 +133,6 @@ if DEBUG:
     # Ensures local unencrypted HTTP development doesn't block cookie storage engines
     CSRF_COOKIE_SECURE = False
     SESSION_COOKIE_SECURE = False
+
+    # FIXED: Directs all sent emails/OTPs straight into the VS Code terminal logs
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

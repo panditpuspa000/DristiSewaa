@@ -12,8 +12,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     
     # 3. Application URL Inclusions 
-    # FIXED: Added 'dashboard/' prefix back here at the root level!
+    # Front Desk / Accounts App System
     path('dashboard/', include('apps.accounts.urls', namespace='accounts')),
+    
+    # Student Management App System
+    path('student/', include('students_app.urls')),
 ]
 
 # ==============================================================================
