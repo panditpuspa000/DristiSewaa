@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DristiSewa Login</title>
+<title>DristiSewa - Staff Login</title>
 
 <style>
     * {
@@ -35,7 +35,7 @@
 
     .logo-section h2 {
         color: #444;
-        margin: 10px 0 10px 0;
+        margin: 10px 0;
         font-size: 22px;
     }
 
@@ -115,15 +115,15 @@
 <div class="login-container">
 
     <div class="logo-section">
-    <img src="{% static 'images/logo.png' %}" alt="Logo" style="width:200px;">
+        <img src="{% static 'images/logo.png' %}" alt="Logo" style="width:200px;">
         <h2>DristiSewa</h2>
     </div>
 
     <div class="divider">
-        <span>Login</span>
+        <span>Staff Login</span>
     </div>
 
-    <form method="POST" action="{% url 'accounts:staff_login' %}">
+    <form method="POST" action="{% url 'login' %}">
         {% csrf_token %}
 
         {% if error %}
@@ -137,8 +137,7 @@
                 <option value="" disabled selected>Select Role</option>
                 <option value="ADMIN">Admin</option>
                 <option value="MANAGER">Manager</option>
-                <option value="FRONT DESK">Front Desk</option>
-             
+                <option value="FRONTDESK">Front Desk</option>
             </select>
         </div>
 

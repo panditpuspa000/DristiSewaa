@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.core.mail import send_mail
@@ -11,12 +11,12 @@ import random
 from .models import OTPModel, Document
 
 
-# HOME
+# ---------------- HOME ----------------
 def home(request):
     return render(request, 'students_app/home.html')
 
 
-# REGISTER (SEND OTP ONLY)
+# ---------------- REGISTER ----------------
 def register(request):
 
     if request.method == "POST":
@@ -35,22 +35,16 @@ def register(request):
             messages.error(request, "Email already registered")
             return redirect('register')
 
-        # GENERATE OTP
         otp = str(random.randint(100000, 999999))
 
-        # STORE SESSION TEMP DATA
         request.session['first_name'] = first_name
         request.session['last_name'] = last_name
         request.session['email'] = email
         request.session['password'] = password
 
-        # REMOVE OLD OTP
         OTPModel.objects.filter(email=email).delete()
-
-        # SAVE OTP
         OTPModel.objects.create(email=email, otp=otp)
 
-        # SEND EMAIL
         send_mail(
             'OTP Verification',
             f'Your OTP is {otp}',
@@ -65,7 +59,7 @@ def register(request):
     return render(request, 'students_app/register.html')
 
 
-# VERIFY OTP (CREATE USER HERE)
+# ---------------- VERIFY OTP ----------------
 def verify_otp(request):
 
     if request.method == "POST":
@@ -89,7 +83,6 @@ def verify_otp(request):
                 otp_obj.is_verified = True
                 otp_obj.save()
 
-                # CREATE USER
                 User.objects.create_user(
                     username=email,
                     email=email,
@@ -98,7 +91,6 @@ def verify_otp(request):
                     last_name=request.session.get('last_name')
                 )
 
-                # CLEAR SESSION
                 request.session.flush()
 
                 messages.success(request, "Account created successfully!")
@@ -115,7 +107,7 @@ def verify_otp(request):
     return render(request, 'students_app/otp_verification.html')
 
 
-# LOGIN
+# ---------------- LOGIN (ROLE BASED) ----------------
 def login_view(request):
 
     if request.method == "POST":
@@ -127,7 +119,14 @@ def login_view(request):
 
         if user:
             login(request, user)
-            return redirect('dashboard')
+
+            # ROLE ROUTING (simple version)
+            if email == "frontdesk":
+                return redirect('frontdesk_dashboard')
+            elif email == "manager":
+                return redirect('manager_dashboard')
+            else:
+                return redirect('dashboard')
 
         messages.error(request, "Invalid credentials")
         return redirect('login')
@@ -135,13 +134,13 @@ def login_view(request):
     return render(request, 'students_app/login.html')
 
 
-# DASHBOARD
+# ---------------- STUDENT DASHBOARD ----------------
 @login_required
 def dashboard(request):
     return render(request, 'students_app/dashboard.html')
 
 
-# UPLOAD DOCUMENTS
+# ---------------- UPLOAD DOCUMENT ----------------
 @login_required
 def upload_docs(request):
 
@@ -165,7 +164,7 @@ def upload_docs(request):
     return render(request, 'students_app/upload_docs.html')
 
 
-# STATUS (IMPORTANT FIX - USER-WISE DATA)
+# ---------------- STUDENT STATUS ----------------
 @login_required
 def app_status(request):
 
@@ -176,13 +175,67 @@ def app_status(request):
     })
 
 
-# LOGOUT
+# ---------------- FRONT DESK DASHBOARD ----------------
+@login_required
+def frontdesk_dashboard(request):
+
+    # SECURITY CHECK
+    if request.user.username != "frontdesk":
+        return HttpResponse("Unauthorized Access")
+
+    documents = Document.objects.all().order_by('-uploaded_at')
+
+    return render(request, 'frontdesk/dashboard.html', {
+        'documents': documents
+    })
+
+
+# ---------------- MANAGER DASHBOARD ----------------
+@login_required
+def manager_dashboard(request):
+
+    # SECURITY CHECK
+    if request.user.username != "manager":
+        return HttpResponse("Unauthorized Access")
+
+    pending_docs = Document.objects.filter(status="Pending").order_by('-uploaded_at')
+    approved_docs = Document.objects.filter(status="Approved").order_by('-uploaded_at')
+    rejected_docs = Document.objects.filter(status="Rejected").order_by('-uploaded_at')
+
+    return render(request, 'manager/dashboard.html', {
+        'pending_docs': pending_docs,
+        'approved_docs': approved_docs,
+        'rejected_docs': rejected_docs
+    })
+
+
+# ---------------- UPDATE STATUS (IMPORTANT NEW FEATURE) ----------------
+@login_required
+def update_status(request, doc_id):
+
+    # only manager can update
+    if request.user.username != "manager":
+        return HttpResponse("Unauthorized Access")
+
+    doc = get_object_or_404(Document, id=doc_id)
+
+    if request.method == "POST":
+        new_status = request.POST.get('status')
+        doc.status = new_status
+        doc.save()
+
+        messages.success(request, "Status updated successfully!")
+
+    return redirect('manager_dashboard')
+
+
+# ---------------- LOGOUT ----------------
 def logout_view(request):
     logout(request)
     return redirect('home')
 
 
-# TEST EMAIL
+# ---------------- TEST EMAIL ----------------
 def test_email(request):
     send_mail(
         'Test Email',
