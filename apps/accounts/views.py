@@ -23,7 +23,7 @@ def staff_login(request):
         selected_role = request.POST.get('role')
 
         if not password or not selected_role or selected_role.strip() == "Select Role":
-            error = "कृपया रोल र पासवर्ड छनौट गर्नुहोस्।"
+            error = "Please select a role and enter your password."
         else:
             role_clean = selected_role.strip().lower()
 
@@ -45,7 +45,6 @@ def staff_login(request):
                 matching_users = matching_users.filter(email__iexact=email.strip())
 
             authenticated_user = None
-
             for user in matching_users:
                 if user.check_password(password):
                     authenticated_user = user
@@ -53,34 +52,26 @@ def staff_login(request):
 
             if authenticated_user:
                 login(request, authenticated_user)
-
-                if authenticated_user.username == 'admin_test':
-                    return redirect('accounts:admin_dashboard')
-
-                if authenticated_user.is_superuser or authenticated_user.is_staff:
-                    return redirect('accounts:admin_dashboard')
-
+                
+                # Database ko role check garne
                 user_role_db = (authenticated_user.role or '').lower().strip()
 
-                if 'admin' in user_role_db:
+                # Front Desk check pahila rakhne (is_staff le garda admin dashboard ma na-gaiwos vanna lai)
+                if any(x in user_role_db for x in ['front desk', 'front_desk', 'staff', 'frontdesk']):
+                    return redirect('frontdeskstaff:front_desk_dashboard')
+                
+                elif 'admin' in user_role_db or authenticated_user.username == 'admin_test' or authenticated_user.is_superuser or authenticated_user.is_staff:
                     return redirect('accounts:admin_dashboard')
+                    
                 elif 'manager' in user_role_db:
                     return redirect('accounts:manager_dashboard')
-                elif any(x in user_role_db for x in ['front desk', 'front_desk', 'staff', 'frontdesk']):
-                    return redirect('accounts:front_desk_dashboard')
+                    
                 else:
-                    error = "ड्यासबोर्ड कन्फिगर गरिएको छैन।"
+                    error = "Dashboard configuration not found for this role."
             else:
-                error = "पासवर्ड वा अकाउन्ट मिलेन।"
+                error = "Invalid email, password, or role choice."
 
-    return render(request, 'accounts/staff_login.html', {'error': error})
-
-
-# ---------------- LOGOUT ----------------
-def user_logout(request):
-    logout(request)
-    messages.success(request, "Logged out successfully.")
-    return redirect('accounts:staff_login')
+    return render(request, 'account/staff_login.html', {'error': error})
 
 
 # ---------------- ADMIN DASHBOARD ----------------
@@ -160,7 +151,6 @@ def branch_staff_list(request):
         b.branch_managers = [m for m in managers if m.branch_id == b.id]
         b.branch_frontdesk = [s for s in staff_members if s.branch_id == b.id]
 
-    # Context block updated to explicitly include branch_count
     return render(request, 'dashboard/branch_staff.html', {
         'branches': branches,
         'branch_count': branches.count(),
@@ -192,34 +182,9 @@ def manager_dashboard(request):
     })
 
 
-# ---------------- FRONT DESK ----------------
-@login_required
-def front_desk_dashboard(request):
-
-    if (request.user.role or '').lower() not in ['staff', 'front desk', 'front_desk', 'frontdesk']:
-        return redirect('accounts:staff_login')
-
-    try:
-        fd = FrontDeskProfile.objects.get(user=request.user)
-        branch = fd.branch
-        students = StudentProfile.objects.filter(branch=branch)
-    except:
-        branch = None
-        students = StudentProfile.objects.none()
-
-    return render(request, 'dashboard/front_desk_dashboard.html', {
-        'branch': branch,
-        'students': students,
-        'student_count': students.count(),
-    })
-
-
 # ---------------- STUDENT MANAGEMENT ----------------
 @login_required
 def student_management(request):
-    """
-    Renders the student management overview dashboard for Admin/Staff.
-    """
     if request.user.username != 'admin_test' and not request.user.is_superuser and (request.user.role or '').lower().strip() != 'admin':
         return redirect('accounts:staff_login')
         
@@ -233,9 +198,6 @@ def student_management(request):
 # ---------------- CREATE BRANCH ----------------
 @login_required
 def create_branch(request):
-    """
-    Handles creating a new branch instance record via BranchForm.
-    """
     if request.user.username != 'admin_test' and not request.user.is_superuser and (request.user.role or '').lower().strip() != 'admin':
         return redirect('accounts:staff_login')
 
@@ -254,9 +216,6 @@ def create_branch(request):
 # ---------------- UPDATE BRANCH ----------------
 @login_required
 def update_branch(request, branch_id):
-    """
-    Handles editing/updating an existing branch using its unique database row identifier ID.
-    """
     if request.user.username != 'admin_test' and not request.user.is_superuser and (request.user.role or '').lower().strip() != 'admin':
         return redirect('accounts:staff_login')
 
@@ -280,9 +239,6 @@ def update_branch(request, branch_id):
 # ---------------- TOGGLE BRANCH VISIBILITY ----------------
 @login_required
 def toggle_branch_visibility(request, branch_id):
-    """
-    Toggles the active/visible state of a branch.
-    """
     if request.user.username != 'admin_test' and not request.user.is_superuser and (request.user.role or '').lower().strip() != 'admin':
         return redirect('accounts:staff_login')
         
@@ -301,9 +257,6 @@ def toggle_branch_visibility(request, branch_id):
 # ---------------- DELETE BRANCH ----------------
 @login_required
 def delete_branch(request, branch_id):
-    """
-    Handles deleting a branch record from the database completely.
-    """
     if request.user.username != 'admin_test' and not request.user.is_superuser and (request.user.role or '').lower().strip() != 'admin':
         return redirect('accounts:staff_login')
 
@@ -318,9 +271,6 @@ def delete_branch(request, branch_id):
 # ---------------- TOGGLE USER VISIBILITY ----------------
 @login_required
 def toggle_user_visibility(request, user_id):
-    """
-    Toggles the active state (is_active) of a staff member or user.
-    """
     if request.user.username != 'admin_test' and not request.user.is_superuser and (request.user.role or '').lower().strip() != 'admin':
         return redirect('accounts:staff_login')
         
@@ -342,9 +292,6 @@ def toggle_user_visibility(request, user_id):
 # ---------------- UPDATE MANAGER ----------------
 @login_required
 def update_manager(request, user_id):
-    """
-    Handles editing/updating a manager or staff user profile via AdminManagerCreationForm.
-    """
     if request.user.username != 'admin_test' and not request.user.is_superuser and (request.user.role or '').lower().strip() != 'admin':
         return redirect('accounts:staff_login')
 
@@ -385,9 +332,6 @@ def update_manager(request, user_id):
 # ---------------- DELETE USER ACCOUNT ----------------
 @login_required
 def delete_user_account(request, user_id):
-    """
-    Handles deleting a user/staff account permanently from the database.
-    """
     if request.user.username != 'admin_test' and not request.user.is_superuser and (request.user.role or '').lower().strip() != 'admin':
         return redirect('accounts:staff_login')
 

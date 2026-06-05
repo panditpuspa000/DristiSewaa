@@ -12,8 +12,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     
     # 3. Application URL Inclusions 
-    # Front Desk / Accounts App System
-    path('dashboard/', include('apps.accounts.urls', namespace='accounts')),
+    # Accounts & Admin Management App System
+    path('accounts/', include('apps.accounts.urls', namespace='accounts')),
+    
+    # ✅ Dedicated Isolated Front Desk App System
+    path('frontdesk/', include('apps.frontdeskstaff.urls', namespace='frontdeskstaff')),
     
     # Student Management App System
     path('student/', include('students_app.urls')),
