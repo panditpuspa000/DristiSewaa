@@ -24,10 +24,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    # Custom Apps
-    'apps.accounts',
+    # Custom Apps Core 
+    'apps.accounts',        # 🔐 CRITICAL: Kept at the top so AUTH_USER_MODEL loads first
     'apps.consultancy',
     'apps.notifications',
+    
+    # Dedicated Isolated Front Desk App 
+    'apps.frontdeskstaff',  # ✅ Placed safely below accounts core dependency
     
     # Student App Setup
     'students_app',
