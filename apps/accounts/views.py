@@ -9,7 +9,8 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Q
 
-from .models import User, StudentProfile, Branch, ManagerProfile, FrontDeskProfile
+#  UPDATED CLEAN IMPORT
+from .models import User, StudentProfile, Branch, FrontDeskProfile
 from .forms import BranchForm, AdminManagerCreationForm
 
 

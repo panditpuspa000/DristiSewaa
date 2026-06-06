@@ -127,7 +127,8 @@
         {% endfor %}
     {% endif %}
 
-    <form method="POST" action="{% url 'verify_otp' %}">
+    <!-- ✅ Fixed: Added 'students:' namespace prefix to form action -->
+    <form method="POST" action="{% url 'students:verify_otp' %}">
         {% csrf_token %}
 
         <input type="text" name="otp" placeholder="******" maxlength="6" required autocomplete="off">
@@ -141,7 +142,8 @@
 
     <div class="resend">
         Didn't receive OTP?
-        <a href="{% url 'register' %}">Resend OTP</a>
+        <!-- ✅ Fixed: Added 'students:' namespace prefix to registration fallback link -->
+        <a href="{% url 'students:register' %}">Resend OTP</a>
     </div>
 
 </div>

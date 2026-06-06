@@ -106,6 +106,7 @@
             display:grid;
             grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
             gap:20px;
+            margin-bottom: 15px;
         }
 
         .field-group{
@@ -113,10 +114,23 @@
             flex-direction:column;
         }
 
+        .field-group label {
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #555;
+            font-weight: 500;
+        }
+
         input, select{
             padding:12px;
             border:1px solid #ddd;
             border-radius:8px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            border-color: #1e27cc;
         }
 
         .error{
@@ -138,49 +152,50 @@
             color:white;
             font-size:20px;
             cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            transition: background 0.2s ease;
+        }
+
+        .next-btn:hover {
+            background: #151b8d;
         }
 
         .error-msg{
             color:red;
             font-size:13px;
             margin-top:10px;
+            font-weight: 500;
         }
     </style>
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
 <div class="sidebar">
-
     <div class="user-profile">
         <i class="fa-solid fa-circle-user" style="font-size:60px;"></i>
-        <p>Student Dashboard</p>
+        <p style="margin-top:10px; font-weight:500;">Student Dashboard</p>
     </div>
 
     <div class="nav-links">
-
-        <a href="{% url 'dashboard' %}" class="nav-item active">
-            <i class="fa-solid fa-house"></i> Home
+        <a href="{% url 'students:dashboard' %}" class="nav-item active">
+            <i class="fa-solid fa-house" style="margin-right:10px;"></i> Home
         </a>
-
-        <a href="{% url 'upload_docs' %}" class="nav-item">
-            <i class="fa-solid fa-cloud-arrow-up"></i> Upload Documents
+        <a href="{% url 'students:upload_docs' %}" class="nav-item">
+            <i class="fa-solid fa-cloud-arrow-up" style="margin-right:10px;"></i> Upload Documents
         </a>
-
-        <a href="{% url 'app_status' %}" class="nav-item">
-            <i class="fa-solid fa-clock"></i> Status
+        <a href="{% url 'students:app_status' %}" class="nav-item">
+            <i class="fa-solid fa-clock" style="margin-right:10px;"></i> Status
         </a>
-
     </div>
 
-    <a href="{% url 'home' %}" class="logout-btn">
-        <i class="fa-solid fa-power-off"></i> Logout
+    <a href="{% url 'students:logout' %}" class="logout-btn">
+        <i class="fa-solid fa-power-off" style="margin-right:5px;"></i> Logout
     </a>
-
 </div>
 
-<!-- MAIN -->
 <div class="main-content">
 
     <div class="top-header">
@@ -191,15 +206,14 @@
     </div>
 
     <div class="form-card">
-
         <h2 class="form-title">Application Form</h2>
 
-        <form id="appForm">
+        <form id="appForm" method="POST" action="{% url 'students:dashboard' %}">
+            {% csrf_token %}
 
             <div class="section-header">Personal Information</div>
 
             <div class="grid-row">
-
                 <div class="field-group">
                     <label>First Name</label>
                     <input type="text" value="{{ request.user.first_name }}" readonly>
@@ -209,11 +223,9 @@
                     <label>Last Name</label>
                     <input type="text" value="{{ request.user.last_name }}" readonly>
                 </div>
-
             </div>
 
             <div class="grid-row">
-
                 <div class="field-group">
                     <label>Email</label>
                     <input type="text" value="{{ request.user.email }}" readonly>
@@ -221,80 +233,73 @@
 
                 <div class="field-group">
                     <label>Date of Birth</label>
-                    <input type="date">
+                    <input type="date" name="date_of_birth" value="{{ profile.date_of_birth|date:'Y-m-d' }}">
                 </div>
-
             </div>
 
             <div class="section-header">Academic</div>
 
             <div class="grid-row">
-
                 <div class="field-group">
                     <label>College Name</label>
-                    <input type="text">
+                    <input type="text" name="college_name" value="{{ profile.college_name|default:'' }}">
                 </div>
 
                 <div class="field-group">
                     <label>Passed Year (1990-2027)</label>
-                    <input type="number" id="year" min="1990" max="2027">
+                    <input type="number" id="year" name="passed_year" min="1990" max="2027" value="{{ profile.passed_year|default:'' }}">
                 </div>
 
                 <div class="field-group">
                     <label>GPA (0.0 - 4.0)</label>
-                    <input type="number" id="gpa" step="0.01" min="0" max="4">
+                    <input type="number" id="gpa" name="gpa" step="0.01" min="0" max="4" value="{{ profile.gpa|default:'' }}">
                 </div>
-
             </div>
 
             <div class="section-header">English</div>
 
             <div class="grid-row">
-
                 <div class="field-group">
                     <label>Test Type</label>
-                    <select id="testType">
+                    <select id="testType" name="test_type">
                         <option value="">Select</option>
-                        <option value="IELTS">IELTS</option>
-                        <option value="PTE">PTE</option>
-                        <option value="TOEFL">TOEFL</option>
+                        <option value="IELTS" {% if profile.test_type == 'IELTS' %}selected{% endif %}>IELTS</option>
+                        <option value="PTE" {% if profile.test_type == 'PTE' %}selected{% endif %}>PTE</option>
+                        <option value="TOEFL" {% if profile.test_type == 'TOEFL' %}selected{% endif %}>TOEFL</option>
                     </select>
                 </div>
 
                 <div class="field-group">
                     <label>Score</label>
-                    <input type="number" id="score">
+                    <input type="number" id="score" name="test_score" step="0.01" value="{{ profile.test_score|default:'' }}">
                 </div>
 
                 <div class="field-group">
                     <label>Preferred Country</label>
-                    <select>
-                        <option>UK</option>
-                        <option>USA</option>
-                        <option>Canada</option>
-                        <option>Australia</option>
+                    <select name="preferred_country">
+                        <option value="UK" {% if profile.preferred_country == 'UK' %}selected{% endif %}>UK</option>
+                        <option value="USA" {% if profile.preferred_country == 'USA' %}selected{% endif %}>USA</option>
+                        <option value="Canada" {% if profile.preferred_country == 'Canada' %}selected{% endif %}>Canada</option>
+                        <option value="Australia" {% if profile.preferred_country == 'Australia' %}selected{% endif %}>Australia</option>
                     </select>
                 </div>
-
             </div>
 
             <p id="error" class="error-msg"></p>
 
             <div class="footer-action">
-                <button type="button" class="next-btn" onclick="validateForm()">
+                <button type="submit" class="next-btn">
                     <i class="fa-solid fa-angles-right"></i>
                 </button>
             </div>
 
         </form>
-
     </div>
-
 </div>
 
 <script>
-function validateForm(){
-
+// ✅ Fixed: Attached validation check intercept straight to form onsubmit listener event
+document.getElementById("appForm").onsubmit = function(event) {
     let year = document.getElementById("year");
     let gpa = document.getElementById("gpa");
     let testType = document.getElementById("testType");
@@ -309,42 +314,53 @@ function validateForm(){
     let t = testType.value;
 
     // YEAR CHECK
-    if(y < 1990 || y > 2027){
+    if(year.value && (y < 1990 || y > 2027)){
         error.innerText = "Passed year must be between 1990 and 2027";
-        return;
+        event.preventDefault(); // Blocks invalid form data dispatch pipelines
+        return false;
     }
 
     // GPA CHECK
-    if(g < 0 || g > 4){
+    if(gpa.value && (g < 0 || g > 4)){
         error.innerText = "GPA must be between 0.0 and 4.0";
-        return;
+        event.preventDefault();
+        return false;
     }
 
     // TEST TYPE VALIDATION
     if(t === ""){
         error.innerText = "Select English test type";
-        return;
+        event.preventDefault();
+        return false;
     }
 
     // SCORE VALIDATION
-    if(t === "IELTS" && (s < 0 || s > 9)){
-        error.innerText = "IELTS score must be 0 - 9";
-        return;
-    }
+    if(score.value) {
+        if(t === "IELTS" && (s < 0 || s > 9)){
+            error.innerText = "IELTS score must be 0 - 9";
+            event.preventDefault();
+            return false;
+        }
 
-    if(t === "PTE" && (s < 10 || s > 90)){
-        error.innerText = "PTE score must be 10 - 90";
-        return;
-    }
+        if(t === "PTE" && (s < 10 || s > 90)){
+            error.innerText = "PTE score must be 10 - 90";
+            event.preventDefault();
+            return false;
+        }
 
-    if(t === "TOEFL" && (s < 0 || s > 120)){
-        error.innerText = "TOEFL score must be 0 - 120";
-        return;
+        if(t === "TOEFL" && (s < 0 || s > 120)){
+            error.innerText = "TOEFL score must be 0 - 120";
+            event.preventDefault();
+            return false;
+        }
+    } else {
+        error.innerText = "Please enter your test score";
+        event.preventDefault();
+        return false;
     }
-
-    // SUCCESS → redirect
-    window.location.href = "{% url 'upload_docs' %}";
-}
+    
+    // Form proceeds naturally to perform native POST transmission back to views.py
+};
 </script>
 
 </body>

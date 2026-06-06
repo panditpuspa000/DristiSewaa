@@ -134,10 +134,29 @@
             font-weight:bold;
         }
 
-        .msg{
-            color:red;
-            margin-bottom:15px;
-            text-align:center;
+        /* Improved: Dynamic colors handling matching view tags */
+        .msg {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+            font-weight: 500;
+        }
+        .msg.error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+        .msg.success {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+        .msg.warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
         }
     </style>
 
@@ -157,11 +176,13 @@
 
     {% if messages %}
         {% for message in messages %}
-            <p class="msg">{{ message }}</p>
+            <p class="msg {% if message.tags %}{{ message.tags }}{% else %}error{% endif %}">
+                {{ message }}
+            </p>
         {% endfor %}
     {% endif %}
 
-    <form action="{% url 'login' %}" method="POST">
+    <form action="{% url 'students:login' %}" method="POST">
         {% csrf_token %}
 
         <div class="input-group">
@@ -187,7 +208,7 @@
 
     <p class="register-text">
         Don't have an account?
-        <a href="{% url 'register' %}">Register Now</a>
+        <a href="{% url 'students:register' %}">Register Now</a>
     </p>
 
 </div>

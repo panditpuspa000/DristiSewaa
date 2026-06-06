@@ -26,7 +26,7 @@ INSTALLED_APPS = [
     
     # Custom Apps Core 
     'apps.accounts',        # 🔐 CRITICAL: Kept at the top so AUTH_USER_MODEL loads first
-    'apps.consultancy',
+    
     'apps.notifications',
     
     # Dedicated Isolated Front Desk App 

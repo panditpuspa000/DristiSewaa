@@ -1,34 +1,37 @@
+# students_app/urls.py
+
 from django.urls import path
 from .views import (
     home,
     register,
     verify_otp,
     login_view,
+    logout_view,  # Named to match the exact logout logic inside views.py
     dashboard,
     upload_docs,
     app_status,
-    logout_view,
     test_email
 )
 
-urlpatterns = [
+app_name = 'students'
 
-    # HOME (Accessible via: /student/)
+urlpatterns = [
+    # HOME
     path('', home, name='home'),
 
-    # AUTH FLOW
-    path('register/', register, name='register'),          # Accessible via: /student/register/
-    path('otp/', verify_otp, name='verify_otp'),            # Accessible via: /student/otp/
-    path('login/', login_view, name='login'),              # Accessible via: /student/login/
-    path('logout/', logout_view, name='logout'),            # Accessible via: /student/logout/
+    # AUTHENTICATION PIPELINE Flow
+    path('register/', register, name='register'),
+    path('verify-otp/', verify_otp, name='verify_otp'),
+    path('login/', login_view, name='login'),
+    path('logout/', logout_view, name='logout'),
 
-    # DASHBOARD
-    path('dashboard/', dashboard, name='dashboard'),        # Accessible via: /student/dashboard/
+    # STUDENT WORKSPACE DASHBOARD
+    path('dashboard/', dashboard, name='dashboard'),
 
-    # DOCUMENT SYSTEM
-    path('upload-documents/', upload_docs, name='upload_docs'),  # Accessible via: /student/upload-documents/
-    path('application-status/', app_status, name='app_status'),  # Accessible via: /student/application-status/
+    # DOCUMENT PIPELINE SUBMISSION SYSTEM
+    path('upload-documents/', upload_docs, name='upload_docs'),
+    path('application-status/', app_status, name='app_status'),
 
-    # TEST EMAIL (REMOVE IN PRODUCTION)
+    # DIAGNOSTIC MAILING TESTING ROUTE
     path('test-email/', test_email, name='test_email'),
 ]

@@ -146,7 +146,6 @@
 
 <body>
 
-<!-- NAVBAR -->
 <nav class="navbar">
 
     <div class="logo">
@@ -158,16 +157,15 @@
         <span class="nav-label">IELTS</span>
         <span class="nav-label">PTE</span>
 
-        <!-- 🔥 AUTH LOGIC -->
         {% if user.is_authenticated %}
 
-            <a href="{% url 'dashboard' %}" class="nav-btn">Dashboard</a>
-            <a href="{% url 'logout' %}" class="nav-btn">Logout</a>
+            <a href="{% url 'students:dashboard' %}" class="nav-btn">Dashboard</a>
+            <a href="{% url 'students:logout' %}" class="nav-btn">Logout</a>
 
         {% else %}
 
-            <a href="{% url 'login' %}" class="nav-btn">Login</a>
-            <a href="{% url 'register' %}" class="nav-btn">Register</a>
+            <a href="{% url 'students:login' %}" class="nav-btn">Login</a>
+            <a href="{% url 'students:register' %}" class="nav-btn">Register</a>
 
         {% endif %}
 
@@ -175,7 +173,6 @@
 
 </nav>
 
-<!-- MAIN -->
 <div class="container">
 
     <div class="left-section">
@@ -218,7 +215,6 @@
 
 </div>
 
-<!-- FOOTER -->
 <footer class="footer">
     <span>
         For more information:<br>

@@ -137,11 +137,13 @@
             border-radius:10px;
             transition:0.2s;
             background:#fff;
+            text-decoration: none; /* Keeps layout clear when wrapped as a link */
         }
 
         .doc-card:hover{
             border-color:#1e27cc;
             transform:scale(1.01);
+            box-shadow: 0 2px 8px rgba(30, 39, 204, 0.08);
         }
 
         .doc-left{
@@ -153,8 +155,15 @@
         }
 
         .doc-left i{
-            color:#e74c3c;
+            color:#1e27cc;
             font-size:20px;
+        }
+        
+        .doc-meta {
+            font-size: 13px;
+            color: #888;
+            font-weight: 400;
+            margin-left: 5px;
         }
 
         /* STATUS BADGES */
@@ -206,7 +215,6 @@
 
 <body>
 
-<!-- SIDEBAR -->
 <div class="sidebar">
 
     <div class="user-profile">
@@ -215,33 +223,30 @@
     </div>
 
     <div class="nav-links">
-
-        <a href="{% url 'dashboard' %}" class="nav-item">
+        <a href="{% url 'students:dashboard' %}" class="nav-item">
             <i class="fa-solid fa-house"></i> Home
         </a>
 
-        <a href="{% url 'upload_docs' %}" class="nav-item">
+        <a href="{% url 'students:upload_docs' %}" class="nav-item">
             <i class="fa-solid fa-cloud-arrow-up"></i> Upload Documents
         </a>
 
-        <a href="{% url 'app_status' %}" class="nav-item active">
+        <a href="{% url 'students:app_status' %}" class="nav-item active">
             <i class="fa-solid fa-clock"></i> Status
         </a>
-
     </div>
 
-    <a href="{% url 'logout' %}" class="logout-btn">
+    <a href="{% url 'students:logout' %}" class="logout-btn">
         <i class="fa-solid fa-power-off"></i> Logout
     </a>
 
 </div>
 
-<!-- MAIN -->
 <div class="main-content">
 
     <div class="top-header">
         <div>
-            <strong>{{ request.user.first_name }}</strong><br>
+            <strong>{{ request.user.first_name }} {{ request.user.last_name }}</strong><br>
             <small>{{ request.user.email }}</small>
         </div>
     </div>
@@ -259,36 +264,28 @@
             <div class="doc-list">
 
                 {% for doc in documents %}
-
-                    <div class="doc-card">
+                    <a href="{{ doc.file.url }}" target="_blank" class="doc-card">
 
                         <div class="doc-left">
                             <i class="fa-solid fa-file-lines"></i>
-                            <span>{{ doc.document_name }}</span>
+                            <span>
+                                {{ doc.document_type|default:doc.document_name|default:"Uploaded Document" }}
+                                {% if doc.uploaded_at %}
+                                    <span class="doc-meta">({{ doc.uploaded_at|date:"M d, Y" }})</span>
+                                {% endif %}
+                            </span>
                         </div>
 
-                        {% if doc.status == "Pending" %}
-
-                            <span class="badge pending">
-                                {{ doc.status }}
-                            </span>
-
-                        {% elif doc.status == "Approved" %}
-
-                            <span class="badge approved">
-                                {{ doc.status }}
-                            </span>
-
+                        {# Check status safely by prioritizing database values or default to Pending #}
+                        {% if doc.status == "Approved" or doc.is_verified %}
+                            <span class="badge approved">Approved</span>
+                        {% elif doc.status == "Rejected" or doc.is_rejected %}
+                            <span class="badge rejected">Rejected</span>
                         {% else %}
-
-                            <span class="badge rejected">
-                                {{ doc.status }}
-                            </span>
-
+                            <span class="badge pending">Pending</span>
                         {% endif %}
 
-                    </div>
-
+                    </a>
                 {% endfor %}
 
             </div>

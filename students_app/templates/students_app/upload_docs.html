@@ -49,6 +49,7 @@
             margin-top:10px;
             font-size:16px;
             font-weight:600;
+            box-sizing: border-box;
         }
 
         .nav-links{
@@ -164,7 +165,6 @@
 
 <body>
 
-<!-- SIDEBAR -->
 <div class="sidebar">
 
     <div class="user-profile">
@@ -173,28 +173,26 @@
     </div>
 
     <div class="nav-links">
-
-        <a href="{% url 'dashboard' %}" class="nav-item">
+        <a href="{% url 'students:dashboard' %}" class="nav-item">
             <i class="fa-solid fa-house"></i> Home
         </a>
 
-        <a href="{% url 'upload_docs' %}" class="nav-item" style="background:rgba(255,255,255,0.15);">
+        <a href="{% url 'students:upload_docs' %}" class="nav-item" style="background:rgba(255,255,255,0.15);">
             <i class="fa-solid fa-cloud-arrow-up"></i> Upload Documents
         </a>
 
-        <a href="{% url 'app_status' %}" class="nav-item">
+        <a href="{% url 'students:app_status' %}" class="nav-item">
             <i class="fa-solid fa-clock"></i> Status
         </a>
 
     </div>
 
-    <a href="{% url 'logout' %}" class="logout-btn">
+    <a href="{% url 'students:logout' %}" class="logout-btn">
         <i class="fa-solid fa-power-off"></i> Logout
     </a>
 
 </div>
 
-<!-- MAIN -->
 <div class="main-content">
 
     <div class="top-header">
@@ -212,14 +210,12 @@
             Please upload your required documents (PDF, Image, etc.)
         </p>
 
-        <!-- MESSAGES -->
         {% if messages %}
             {% for message in messages %}
                 <p class="msg">{{ message }}</p>
             {% endfor %}
         {% endif %}
 
-        <!-- FORM -->
         <form method="POST" enctype="multipart/form-data">
 
             {% csrf_token %}
