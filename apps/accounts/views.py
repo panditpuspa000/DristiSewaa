@@ -24,7 +24,7 @@ def staff_login(request):
         selected_role = request.POST.get('role')
 
         if not password or not selected_role or selected_role.strip() == "Select Role":
-            error = "कृपया रोल र पासवर्ड छनौट गर्नुहोस्।"
+            error = "Please select a role and enter your password."
         else:
             role_clean = selected_role.strip().lower()
 
@@ -46,7 +46,6 @@ def staff_login(request):
                 matching_users = matching_users.filter(email__iexact=email.strip())
 
             authenticated_user = None
-
             for user in matching_users:
                 if user.check_password(password):
                     authenticated_user = user
@@ -54,35 +53,26 @@ def staff_login(request):
 
             if authenticated_user:
                 login(request, authenticated_user)
-
-                if authenticated_user.username == 'admin_test':
-                    return redirect('accounts:admin_dashboard')
-
-                if authenticated_user.is_superuser or authenticated_user.is_staff:
-                    return redirect('accounts:admin_dashboard')
-
+                
+                # Database ko role check garne
                 user_role_db = (authenticated_user.role or '').lower().strip()
 
-                if 'admin' in user_role_db:
+                # Front Desk check pahila rakhne (is_staff le garda admin dashboard ma na-gaiwos vanna lai)
+                if any(x in user_role_db for x in ['front desk', 'front_desk', 'staff', 'frontdesk']):
+                    return redirect('frontdeskstaff:front_desk_dashboard')
+                
+                elif 'admin' in user_role_db or authenticated_user.username == 'admin_test' or authenticated_user.is_superuser or authenticated_user.is_staff:
                     return redirect('accounts:admin_dashboard')
+                    
                 elif 'manager' in user_role_db:
                     return redirect('accounts:manager_dashboard')
-                elif any(x in user_role_db for x in ['front desk', 'front_desk', 'staff', 'frontdesk']):
-                    # ✅ Smart Routing points straight into the new frontdeskstaff application namespace
-                    return redirect('frontdeskstaff:front_desk_dashboard')
+                    
                 else:
-                    error = "ड्यासबोर्ड कन्फिगर गरिएको छैन।"
+                    error = "Dashboard configuration not found for this role."
             else:
-                error = "पासवर्ड वा अकाउन्ट मिलेन।"
+                error = "Invalid email, password, or role choice."
 
-    return render(request, 'accounts/staff_login.html', {'error': error})
-
-
-# ---------------- LOGOUT ----------------
-def user_logout(request):
-    logout(request)
-    messages.success(request, "Logged out successfully.")
-    return redirect('accounts:staff_login')
+    return render(request, 'account/staff_login.html', {'error': error})
 
 
 # ---------------- ADMIN DASHBOARD ----------------
