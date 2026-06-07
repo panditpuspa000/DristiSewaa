@@ -157,10 +157,18 @@
         <span class="nav-label">IELTS</span>
         <span class="nav-label">PTE</span>
 
+<<<<<<< HEAD:students_app/templates/students_app/home.html
         {% if user.is_authenticated %}
 
             <a href="{% url 'students:dashboard' %}" class="nav-btn">Dashboard</a>
             <a href="{% url 'students:logout' %}" class="nav-btn">Logout</a>
+=======
+    
+        {% if user.is_authenticated %}
+
+            <a href="{% url 'dashboard' %}" class="nav-btn">Login</a>
+            <a href="{% url 'logout' %}" class="nav-btn">Register</a>
+>>>>>>> e9a01d72ddab95d9367c7e121ce5ca246663564e:templates/students_app/home.html
 
         {% else %}
 
