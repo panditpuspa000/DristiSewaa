@@ -16,7 +16,7 @@ def home(request):
     return render(request, 'students_app/home.html')
 
 
-# ---------------- REGISTER ----------------
+# ---------------- REGISTER (FIXED: duplicate check + OTP handling) ----------------
 def register(request):
 
     if request.method == "POST":
@@ -27,24 +27,36 @@ def register(request):
         password = request.POST.get('password')
         confirm_password = request.POST.get('confirm_password')
 
+        # password check
         if password != confirm_password:
             messages.error(request, "Passwords do not match")
             return redirect('register')
 
+        # already registered check (IMPORTANT FIX)
         if User.objects.filter(username=email).exists():
-            messages.error(request, "Email already registered")
-            return redirect('register')
+            messages.error(request, "This email is already registered. Please login.")
+            return redirect('login')
 
+        # OPTIONAL FIX: if OTP already sent and not verified
+        existing_otp = OTPModel.objects.filter(email=email, is_verified=False).first()
+        if existing_otp and not existing_otp.is_expired():
+            messages.error(request, "OTP already sent to this email. Please check your inbox.")
+            return redirect('verify_otp')
+
+        # generate OTP
         otp = str(random.randint(100000, 999999))
 
+        # store session data
         request.session['first_name'] = first_name
         request.session['last_name'] = last_name
         request.session['email'] = email
         request.session['password'] = password
 
+        # reset old OTP
         OTPModel.objects.filter(email=email).delete()
         OTPModel.objects.create(email=email, otp=otp)
 
+        # send email
         send_mail(
             'OTP Verification',
             f'Your OTP is {otp}',
@@ -75,7 +87,7 @@ def verify_otp(request):
             otp_obj = OTPModel.objects.get(email=email, is_verified=False)
 
             if otp_obj.is_expired():
-                messages.error(request, "OTP expired")
+                messages.error(request, "OTP expired. Please register again.")
                 return redirect('register')
 
             if otp_obj.otp == entered_otp:
@@ -101,13 +113,13 @@ def verify_otp(request):
                 return redirect('verify_otp')
 
         except OTPModel.DoesNotExist:
-            messages.error(request, "OTP not found")
+            messages.error(request, "OTP not found. Please register again.")
             return redirect('register')
 
     return render(request, 'students_app/otp_verification.html')
 
 
-# ---------------- LOGIN (ROLE BASED) ----------------
+# ---------------- LOGIN ----------------
 def login_view(request):
 
     if request.method == "POST":
@@ -120,13 +132,8 @@ def login_view(request):
         if user:
             login(request, user)
 
-            # ROLE ROUTING (simple version)
-            if email == "frontdesk":
-                return redirect('frontdesk_dashboard')
-            elif email == "manager":
-                return redirect('manager_dashboard')
-            else:
-                return redirect('dashboard')
+            # FIXED ROLE ROUTING
+            return redirect('dashboard')
 
         messages.error(request, "Invalid credentials")
         return redirect('login')
@@ -134,7 +141,7 @@ def login_view(request):
     return render(request, 'students_app/login.html')
 
 
-# ---------------- STUDENT DASHBOARD ----------------
+# ---------------- DASHBOARD ----------------
 @login_required
 def dashboard(request):
     return render(request, 'students_app/dashboard.html')
@@ -164,7 +171,7 @@ def upload_docs(request):
     return render(request, 'students_app/upload_docs.html')
 
 
-# ---------------- STUDENT STATUS ----------------
+# ---------------- STATUS ----------------
 @login_required
 def app_status(request):
 
@@ -175,11 +182,10 @@ def app_status(request):
     })
 
 
-# ---------------- FRONT DESK DASHBOARD ----------------
+# ---------------- FRONTDESK DASHBOARD ----------------
 @login_required
 def frontdesk_dashboard(request):
 
-    # SECURITY CHECK
     if request.user.username != "frontdesk":
         return HttpResponse("Unauthorized Access")
 
@@ -194,7 +200,6 @@ def frontdesk_dashboard(request):
 @login_required
 def manager_dashboard(request):
 
-    # SECURITY CHECK
     if request.user.username != "manager":
         return HttpResponse("Unauthorized Access")
 
@@ -209,21 +214,18 @@ def manager_dashboard(request):
     })
 
 
-# ---------------- UPDATE STATUS (IMPORTANT NEW FEATURE) ----------------
+# ---------------- UPDATE STATUS ----------------
 @login_required
 def update_status(request, doc_id):
 
-    # only manager can update
     if request.user.username != "manager":
         return HttpResponse("Unauthorized Access")
 
     doc = get_object_or_404(Document, id=doc_id)
 
     if request.method == "POST":
-        new_status = request.POST.get('status')
-        doc.status = new_status
+        doc.status = request.POST.get('status')
         doc.save()
-
         messages.success(request, "Status updated successfully!")
 
     return redirect('manager_dashboard')
@@ -233,15 +235,3 @@ def update_status(request, doc_id):
 def logout_view(request):
     logout(request)
     return redirect('home')
-
-
-# ---------------- TEST EMAIL ----------------
-def test_email(request):
-    send_mail(
-        'Test Email',
-        'Hello from Django',
-        settings.EMAIL_HOST_USER,
-        ['receiver@gmail.com'],
-        fail_silently=False,
-    )
-    return HttpResponse("Email sent!")

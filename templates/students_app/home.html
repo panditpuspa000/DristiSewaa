@@ -158,11 +158,11 @@
         <span class="nav-label">IELTS</span>
         <span class="nav-label">PTE</span>
 
-        <!-- 🔥 AUTH LOGIC -->
+    
         {% if user.is_authenticated %}
 
-            <a href="{% url 'dashboard' %}" class="nav-btn">Dashboard</a>
-            <a href="{% url 'logout' %}" class="nav-btn">Logout</a>
+            <a href="{% url 'dashboard' %}" class="nav-btn">Login</a>
+            <a href="{% url 'logout' %}" class="nav-btn">Register</a>
 
         {% else %}
 
