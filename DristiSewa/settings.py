@@ -1,21 +1,16 @@
 import os
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-(uw(cwz(j=h(%&vy1lu3=oge-e&_=nx(h+al@sfr(=&@da&g^-'
-
-# SECURITY WARNING: don't run with debug turned on in production!
+# ================= SECURITY =================
+SECRET_KEY = 'django-insecure-(uw(cwz(j=h(%&vy1lu3=oge-e&_=nx(h+al@sfr(=&@da&g^-)'
 DEBUG = True
 
-# ==============================================================================
-# ALLOWED HOSTS CONFIGURATION
-# ==============================================================================
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'localhost:8000']
 
-# Application definition
+
+# ================= INSTALLED APPS =================
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -23,19 +18,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
-    # Custom Apps Core 
-    'apps.accounts',        # 🔐 CRITICAL: Kept at the top so AUTH_USER_MODEL loads first
+    'frontdesk_core',
+
+    # Custom Apps
+    'apps.accounts',
     'apps.consultancy',
     'apps.notifications',
-    
-    # Dedicated Isolated Front Desk App 
-    'apps.frontdeskstaff',  # ✅ Placed safely below accounts core dependency
-    
-    # Student App Setup
     'students_app',
+
+    # Frontdesk (future)
+    # 'apps.frontdesk_core',
 ]
 
+
+# ================= MIDDLEWARE =================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -46,17 +42,22 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'DristiSewa.urls'
 
+# ================= ROOT URL =================
+ROOT_URLCONF = 'DristiSewa.urls'
+WSGI_APPLICATION = 'DristiSewa.wsgi.application'
+
+
+# ================= TEMPLATES (IMPORTANT FIX FOR ADMIN.E403) =================
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'], 
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
-                'django.template.context_processors.request',
+                'django.template.context_processors.request',  # 🔥 REQUIRED for admin
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -64,9 +65,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'DristiSewa.wsgi.application'
 
-# Database
+# ================= DATABASE =================
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -74,7 +74,8 @@ DATABASES = {
     }
 }
 
-# Password validation
+
+# ================= AUTH =================
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -82,69 +83,58 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# Internationalization
+AUTH_USER_MODEL = 'accounts.User'
+
+
+# ================= INTERNATIONAL =================
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Asia/Kathmandu'  # ✅ FIXED: Synced with your local region for correct OTP timestamps
+TIME_ZONE = 'Asia/Kathmandu'
 USE_I18N = True
 USE_TZ = True
 
-# ==============================================================================
-# STATIC & MEDIA FILES CONFIGURATIONS
-# ==============================================================================
+
+# ================= STATIC / MEDIA =================
 STATIC_URL = '/static/'
-
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
-
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
 
-# ==============================================================================
-# AUTHENTICATION & SECURITY SETTINGS
-# ==============================================================================
+
+# ================= DEFAULT =================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-AUTH_USER_MODEL = 'accounts.User'
 
-# ==============================================================================
-# FIXED NAMESPACED AUTH ROUTING RULES
-# ==============================================================================
+
+# ================= LOGIN =================
 LOGIN_URL = 'accounts:staff_login'
-LOGOUT_REDIRECT_URL = 'accounts:staff_login'
 LOGIN_REDIRECT_URL = 'accounts:admin_dashboard'
+LOGOUT_REDIRECT_URL = 'accounts:staff_login'
 
-# ==============================================================================
-# LOCAL DEVELOPMENT COOKIE, CROSS-PATH, AND CSRF SECURITY RECOVERY ENGINE
-# ==============================================================================
+
+# ================= CSRF (DEV ONLY) =================
 if DEBUG:
-    # Explicitly trust local development origins to prevent modern browser 403 blocks
     CSRF_TRUSTED_ORIGINS = [
         'http://127.0.0.1:8000',
         'http://localhost:8000',
     ]
-    
-    # Forces cookies to match valid scopes across all subdirectories and subpaths
+
     CSRF_COOKIE_PATH = '/'
     SESSION_COOKIE_PATH = '/'
-    
-    # Prevents modern browsers from dropping security tokens on internal root domain redirects
+
     CSRF_COOKIE_SAMESITE = 'Lax'
     SESSION_COOKIE_SAMESITE = 'Lax'
-    
-    # Ensures local unencrypted HTTP development doesn't block cookie storage engines
+
     CSRF_COOKIE_SECURE = False
     SESSION_COOKIE_SECURE = False
 
-    # ==============================================================================
-    # SMTP GMAIL BACKEND DISPATCH CONFIGURATION NETWORK
-    # ==============================================================================
-    # ✅ FIXED: Replaced 'console' with active production delivery so registration OTPs are actually sent
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = 'smtp.gmail.com'
-    EMAIL_PORT = 587
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = 'panditpuspa000@gmail.com'
-    EMAIL_HOST_PASSWORD = 'rpnandvoiairdgym'
-    DEFAULT_FROM_EMAIL = f"DristiSewa Platform <{EMAIL_HOST_USER}>"
+
+# ================= EMAIL =================
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = 'panditpuspa000@gmail.com'
+EMAIL_HOST_PASSWORD = 'rpnandvoiairdgym'
+DEFAULT_FROM_EMAIL = f"DristiSewa Platform <{EMAIL_HOST_USER}>"

@@ -15,7 +15,6 @@ from .forms import BranchForm, AdminManagerCreationForm
 # ================= LOGOUT =================
 def user_logout(request):
     logout(request)
-    messages.success(request, "Successfully logged out!")
     return redirect('accounts:staff_login')
 
 
@@ -26,55 +25,55 @@ def staff_login(request):
     if request.method == "POST":
         email = request.POST.get("email", "").strip()
         password = request.POST.get("password", "")
-        selected_role = request.POST.get("role", "").strip()
+        role_input = request.POST.get("role", "").strip().lower()
 
-        if not email or not password or not selected_role:
+        if not email or not password or not role_input:
             error = "All fields are required."
         else:
-            role = selected_role.lower()
 
-            # normalize front desk roles
-            if role in ["front desk", "front_desk", "frontdesk", "staff"]:
+            # normalize frontdesk inputs
+            is_frontdesk = role_input in ["front desk", "front_desk", "frontdesk", "staff"]
+
+            if is_frontdesk:
                 users = User.objects.filter(
                     Q(role__iexact="front desk") |
                     Q(role__iexact="front_desk") |
                     Q(role__iexact="frontdesk") |
                     Q(role__iexact="staff"),
-                    is_active=True,
-                    email__iexact=email
+                    email__iexact=email,
+                    is_active=True
                 )
             else:
                 users = User.objects.filter(
-                    role__iexact=role,
-                    is_active=True,
-                    email__iexact=email
+                    role__iexact=role_input,
+                    email__iexact=email,
+                    is_active=True
                 )
 
-            authenticated_user = None
+            auth_user = None
 
-            for user in users:
-                if user.check_password(password):
-                    authenticated_user = user
+            for u in users:
+                if u.check_password(password):
+                    auth_user = u
                     break
 
-            if authenticated_user:
-                login(request, authenticated_user)
-                role = (authenticated_user.role or "").lower()
+            if auth_user:
+                login(request, auth_user)
 
-                # FRONT DESK
+                role = (auth_user.role or "").lower().strip()
+
+                # ================= FRONTDESK FIX (IMPORTANT) =================
                 if role in ["front desk", "front_desk", "frontdesk", "staff"]:
-                    return redirect("frontdeskstaff:front_desk_dashboard")
+                    return redirect("frontdesk_core:front_desk_dashboard")
 
-                # ADMIN
-                elif authenticated_user.is_superuser or role == "admin" or authenticated_user.username == "admin_test":
+                elif auth_user.is_superuser or role == "admin":
                     return redirect("accounts:admin_dashboard")
 
-                # MANAGER
                 elif role == "manager":
                     return redirect("accounts:manager_dashboard")
 
                 else:
-                    error = "No dashboard assigned for this role."
+                    error = "No dashboard assigned."
             else:
                 error = "Invalid email or password."
 
@@ -84,11 +83,10 @@ def staff_login(request):
 # ================= ADMIN DASHBOARD =================
 @login_required
 def admin_dashboard(request):
-
     if not (request.user.is_superuser or (request.user.role or "").lower() == "admin"):
         return redirect("accounts:staff_login")
 
-    managers = ManagerProfile.objects.select_related("user", "branch").all()
+    managers = ManagerProfile.objects.select_related("user", "branch")
 
     total_students = StudentProfile.objects.count()
     total_branches = Branch.objects.count()
@@ -96,19 +94,17 @@ def admin_dashboard(request):
 
     total_staff = managers.count() + total_frontdesk
 
-    thirty_days_ago = timezone.now() - timedelta(days=30)
+    recent = timezone.now() - timedelta(days=30)
 
-    recent_managers = ManagerProfile.objects.filter(
-        user__date_joined__gte=thirty_days_ago
-    ).count()
-
-    recent_staff = FrontDeskProfile.objects.filter(
-        user__date_joined__gte=thirty_days_ago
-    ).count()
-
-    growth_trend = round(((recent_managers + recent_staff) / total_staff) * 100) if total_staff else 0
-
-    recent_branches = Branch.objects.all().order_by("-id")[:5]
+    growth = 0
+    if total_staff > 0:
+        growth = round(
+            (
+                ManagerProfile.objects.filter(user__date_joined__gte=recent).count()
+                + FrontDeskProfile.objects.filter(user__date_joined__gte=recent).count()
+            )
+            / total_staff * 100
+        )
 
     return render(request, "dashboard/overview.html", {
         "student_count": total_students,
@@ -116,18 +112,48 @@ def admin_dashboard(request):
         "managers": managers,
         "frontdesk_count": total_frontdesk,
         "total_staff_count": total_staff,
-        "growth_trend": growth_trend,
-        "recent_branches": recent_branches,
+        "growth_trend": growth,
     })
 
 
-# ================= STUDENT MANAGEMENT =================
+# ================= MANAGER =================
 @login_required
-def student_management(request):
-
-    if not (request.user.is_superuser or (request.user.role or "").lower() == "admin"):
+def manager_dashboard(request):
+    if (request.user.role or "").lower() != "manager":
         return redirect("accounts:staff_login")
 
+    try:
+        branch = ManagerProfile.objects.get(user=request.user).branch
+        students = StudentProfile.objects.filter(branch=branch)
+    except ManagerProfile.DoesNotExist:
+        branch = None
+        students = StudentProfile.objects.none()
+
+    return render(request, "dashboard/manager.html", {
+        "branch": branch,
+        "students": students,
+        "student_count": students.count(),
+    })
+
+
+# ================= BRANCH STAFF =================
+@login_required
+def branch_staff_list(request):
+    branches = Branch.objects.all()
+    managers = ManagerProfile.objects.select_related("user", "branch")
+    staff = FrontDeskProfile.objects.select_related("user", "branch")
+
+    return render(request, "dashboard/branch_staff.html", {
+        "branches": branches,
+        "managers": managers,
+        "staff_members": staff,
+        "form": AdminManagerCreationForm(),
+    })
+
+
+# ================= STUDENTS =================
+@login_required
+def student_management(request):
     students = StudentProfile.objects.select_related("user", "branch").all()
 
     return render(request, "dashboard/student_management.html", {
@@ -138,15 +164,10 @@ def student_management(request):
 # ================= BRANCH =================
 @login_required
 def create_branch(request):
-
-    if not (request.user.is_superuser or (request.user.role or "").lower() == "admin"):
-        return redirect("accounts:staff_login")
-
     form = BranchForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
         form.save()
-        messages.success(request, "Branch created successfully!")
         return redirect("accounts:admin_dashboard")
 
     return render(request, "dashboard/create_branch.html", {"form": form})
@@ -154,13 +175,11 @@ def create_branch(request):
 
 @login_required
 def update_branch(request, branch_id):
-
     branch = get_object_or_404(Branch, id=branch_id)
     form = BranchForm(request.POST or None, instance=branch)
 
     if request.method == "POST" and form.is_valid():
         form.save()
-        messages.success(request, "Branch updated successfully!")
         return redirect("accounts:admin_dashboard")
 
     return render(request, "dashboard/update_branch.html", {
@@ -171,47 +190,36 @@ def update_branch(request, branch_id):
 
 @login_required
 def toggle_branch_visibility(request, branch_id):
-
     branch = get_object_or_404(Branch, id=branch_id)
-
-    if hasattr(branch, "is_active"):
-        branch.is_active = not branch.is_active
-        branch.save()
-
+    branch.is_active = not branch.is_active
+    branch.save()
     return redirect("accounts:admin_dashboard")
 
 
 @login_required
 def delete_branch(request, branch_id):
-
     branch = get_object_or_404(Branch, id=branch_id)
     branch.delete()
-
     return redirect("accounts:admin_dashboard")
 
 
 # ================= USER MANAGEMENT =================
 @login_required
 def toggle_user_visibility(request, user_id):
-
     user_obj = get_object_or_404(User, id=user_id)
-
-    if user_obj == request.user:
-        return redirect("accounts:branch_staff")
-
     user_obj.is_active = not user_obj.is_active
     user_obj.save()
-
     return redirect("accounts:branch_staff")
 
 
 @login_required
 def update_manager(request, user_id):
-
     user_obj = get_object_or_404(User, id=user_id)
 
-    profile = ManagerProfile.objects.filter(user=user_obj).first() or \
-              FrontDeskProfile.objects.filter(user=user_obj).first()
+    profile = (
+        ManagerProfile.objects.filter(user=user_obj).first()
+        or FrontDeskProfile.objects.filter(user=user_obj).first()
+    )
 
     form = AdminManagerCreationForm(request.POST or None, instance=user_obj)
 
@@ -225,7 +233,6 @@ def update_manager(request, user_id):
         user.save()
 
         if profile:
-            profile.branch = form.cleaned_data.get("branch")
             profile.save()
 
         return redirect("accounts:branch_staff")
@@ -238,57 +245,9 @@ def update_manager(request, user_id):
 
 @login_required
 def delete_user_account(request, user_id):
-
     user_obj = get_object_or_404(User, id=user_id)
 
-    if user_obj == request.user:
-        return redirect("accounts:branch_staff")
-
-    user_obj.delete()
+    if user_obj != request.user:
+        user_obj.delete()
 
     return redirect("accounts:branch_staff")
-
-
-# ================= BRANCH STAFF =================
-@login_required
-def branch_staff_list(request):
-
-    if not (request.user.is_superuser or (request.user.role or "").lower() == "admin"):
-        return redirect("accounts:staff_login")
-
-    branches = Branch.objects.all()
-    managers = ManagerProfile.objects.select_related("user", "branch")
-    staff = FrontDeskProfile.objects.select_related("user", "branch")
-
-    for b in branches:
-        b.branch_managers = [m for m in managers if m.branch_id == b.id]
-        b.branch_frontdesk = [s for s in staff if s.branch_id == b.id]
-
-    return render(request, "dashboard/branch_staff.html", {
-        "branches": branches,
-        "managers": managers,
-        "staff_members": staff,
-        "form": AdminManagerCreationForm(),
-    })
-
-
-# ================= MANAGER DASHBOARD =================
-@login_required
-def manager_dashboard(request):
-
-    if (request.user.role or "").lower() != "manager":
-        return redirect("accounts:staff_login")
-
-    try:
-        manager = ManagerProfile.objects.get(user=request.user)
-        branch = manager.branch
-        students = StudentProfile.objects.filter(branch=branch)
-    except ManagerProfile.DoesNotExist:
-        branch = None
-        students = StudentProfile.objects.none()
-
-    return render(request, "dashboard/manager.html", {
-        "branch": branch,
-        "students": students,
-        "student_count": students.count(),
-    })

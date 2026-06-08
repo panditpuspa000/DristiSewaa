@@ -5,23 +5,20 @@ from django.conf.urls.static import static
 from django.views.generic import RedirectView
 
 urlpatterns = [
-    # 1. Clean Root Redirect: Sends empty root hits directly to staff login
-    path('', RedirectView.as_view(pattern_name='accounts:staff_login', permanent=False), name='root_redirect'),
-    
-    # 2. Core Admin Panel Routing Interface
+    path('', RedirectView.as_view(
+        pattern_name='accounts:staff_login',
+        permanent=False
+    )),
+
     path('admin/', admin.site.urls),
-    
-    # 3. Application URL Inclusions 
-    # Accounts & Admin Management App System
-    path('accounts/', include('apps.accounts.urls', namespace='accounts')),
-    
-    # ✅ Dedicated Isolated Front Desk App System
-    path('frontdesk/', include('apps.frontdeskstaff.urls', namespace='frontdeskstaff')),
-    
-    # Student Management App System
+
+    path('accounts/', include('apps.accounts.urls')),
+
+    path('frontdesk/', include('frontdesk_core.urls')),
+
     path('student/', include('students_app.urls')),
 ]
 
 if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

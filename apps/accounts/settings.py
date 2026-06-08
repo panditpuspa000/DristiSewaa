@@ -3,8 +3,6 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# SECURITY (IMPORTANT)
 SECRET_KEY = 'django-insecure-u7i@$j%n3xcpx*vt$$#ee9el7&zq8@ekd++@&e3_h&ruo(e55$'
 
 DEBUG = True
@@ -12,7 +10,9 @@ DEBUG = True
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
-# APPLICATIONS
+# ======================================================================
+# INSTALLED APPS (FIXED)
+# ======================================================================
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -21,11 +21,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # YOUR APPS
     'students_app',
+    'apps.accounts',
+    'apps.consultancy',
+    'apps.notifications',
+    'frontdesk_core',
 ]
 
 
-# MIDDLEWARE
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -36,18 +40,17 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+ROOT_URLCONF = 'DristiSewa.urls'
+WSGI_APPLICATION = 'DristiSewa.wsgi.application'
 
-ROOT_URLCONF = 'myproject.urls'
-
-
-# TEMPLATES
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -57,10 +60,6 @@ TEMPLATES = [
 ]
 
 
-WSGI_APPLICATION = 'myproject.wsgi.application'
-
-
-# DATABASE
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -69,7 +68,6 @@ DATABASES = {
 }
 
 
-# PASSWORD VALIDATION
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -78,47 +76,37 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# INTERNATIONALIZATION
 LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'Asia/Kathmandu'   # ✅ FIXED (important for Nepal system)
+TIME_ZONE = 'Asia/Kathmandu'
 
 USE_I18N = True
 USE_TZ = True
 
 
-# STATIC FILES
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-
-# MEDIA FILES (UPLOADS)
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
 
 
-# DEFAULT AUTO FIELD
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-# ==============================================================================
-# SMTP GMAIL BACKEND DISPATCH CONFIGURATION NETWORK
-# ==============================================================================
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 EMAIL_HOST_USER = 'dristisewa3@gmail.com'
-EMAIL_HOST_PASSWORD = 'bhunvtjctwxmxxze'  # Spaces removed for safe authentication layout
+EMAIL_HOST_PASSWORD = 'bhunvtjctwxmxxze'
 
 DEFAULT_FROM_EMAIL = f"DristiSewa Platform <{EMAIL_HOST_USER}>"
 
 
-# SECURITY CONFIGURATIONS
+LOGIN_URL = 'accounts:staff_login'
+LOGIN_REDIRECT_URL = 'accounts:admin_dashboard'
+LOGOUT_REDIRECT_URL = 'accounts:staff_login'
+
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
-
-LOGIN_REDIRECT_URL = 'dashboard'
-LOGOUT_REDIRECT_URL = 'home'

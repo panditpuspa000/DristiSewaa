@@ -8,14 +8,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f4f7fe; }
         .sidebar-active { background-color: #0ea5e9; }
+        .verified-state { background-color: transparent !important; color: #16a34a !important; border: 1px solid #16a34a; cursor: default; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
 
     <div class="flex min-h-screen">
+        <!-- Sidebar -->
         <div class="w-64 bg-[#3f39c5] text-white flex flex-col justify-between shrink-0">
             <div>
                 <div class="p-6 flex items-center gap-3 border-b border-indigo-700/50">
@@ -23,14 +25,14 @@
                     <span class="font-bold text-lg tracking-wide">Dashboard</span>
                 </div>
                 <nav class="mt-4">
-                    <a href="#" class="flex items-center px-6 py-4 hover:bg-indigo-700 transition-all">
-                        <i class="fas fa-user-graduate mr-3 w-5"></i> Student Management
-                    </a>
-                    <a href="{% url 'followup_management' %}" class="flex items-center px-6 py-4 hover:bg-indigo-700 transition-all">
-                        <i class="fas fa-tasks mr-3 w-5"></i> Followup Management
-                    </a>
                     <a href="#" class="flex items-center px-6 py-4 sidebar-active transition-all">
-                        <i class="fas fa-archive mr-3 w-5"></i> Archived Students
+                        <i class="fas fa-user-graduate mr-3 w-5"></i> Student Management
+                   <!-- यसरी Django URL ट्याग राख्नुहोस् -->
+            <a href="{% url 'followup_management' %}" class="flex items-center px-6 py-4 hover:bg-indigo-700 transition-all">
+             <i class="fas fa-tasks mr-3 w-5"></i> Followup Management
+            </a>
+                    <a href="{% url 'archived_students' %}" class="flex items-center px-6 py-4 hover:bg-indigo-700 transition-all">
+            <i class="fas fa-archive mr-3 w-5"></i> Archived Students
                     </a>
                 </nav>
             </div>
@@ -40,7 +42,9 @@
             </div>
         </div>
 
+        <!-- Main Content Area -->
         <div class="flex-1 p-8">
+            <!-- Top Widgets/Stats -->
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                 <div class="flex flex-wrap gap-4 flex-1">
                     <div class="bg-[#bfdbfe]/60 p-4 rounded-2xl flex items-center min-w-[220px] border border-[#bfdbfe]">
@@ -63,7 +67,7 @@
                     </div>
                     <div class="bg-[#fbcfe8]/60 p-4 rounded-2xl flex items-center min-w-[220px] border border-[#fbcfe8]">
                         <div class="bg-white p-4 rounded-xl mr-4 text-[#db2777] flex items-center justify-center shadow-sm w-14 h-14">
-                            <i class="fas fa-archive text-xl"></i>
+                            <i class="fas fa-file-alt text-xl"></i>
                         </div>
                         <div>
                             <p class="text-sm font-semibold text-gray-800">Archived</p>
@@ -83,9 +87,10 @@
                 </div>
             </div>
 
+            <!-- Table Card -->
             <div class="bg-white rounded-xl shadow-md overflow-hidden">
                 <div class="p-4 flex justify-between items-center border-b border-gray-100">
-                    <h3 class="font-bold text-gray-700">Archived Students</h3>
+                    <h3 class="font-bold text-gray-700">Student Management</h3>
                     <div class="flex gap-2">
                         <input type="text" placeholder="Search students..." class="border border-gray-300 rounded-lg px-4 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-64">
                         <button class="bg-indigo-800 text-white px-6 py-1.5 rounded-lg text-sm hover:bg-indigo-900 transition-all"><i class="fas fa-search mr-2"></i>Search</button>
@@ -96,33 +101,30 @@
                     <table class="w-full text-left">
                         <thead class="bg-gray-50 text-xs uppercase text-gray-500 tracking-wider border-b">
                             <tr>
-                                <th class="px-6 py-4 w-12"><input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500"></th>
                                 <th class="px-6 py-4">Name</th>
                                 <th class="px-6 py-4">Email</th>
                                 <th class="px-6 py-4">Phone</th>
                                 <th class="px-6 py-4">Country</th>
-                                <th class="px-6 py-4 text-center">Unarchive</th>
+                                <th class="px-6 py-4 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="text-sm text-gray-700">
+                            <!-- Student: Sujata Thapa -->
                             <tr class="hover:bg-gray-50 border-b border-gray-100">
-                                <td class="px-6 py-4"><input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500"></td>
-                                <td class="px-6 py-4 font-semibold">
-                                    <button onclick="openProfile('Sujata Thapa', 'sujatathapa05@gmail.com', '9815145982', 'Australia')" class="text-blue-600 hover:text-blue-800 hover:underline text-left font-semibold">
-                                        Sujata Thapa
-                                    </button>
-                                </td>
+                             <td class="px-6 py-4 font-semibold">
+    <a href="{% url 'student_profile' %}" class="text-blue-600 hover:text-blue-800 hover:underline text-left font-semibold inline-block">
+        Sujata Thapa
+    </a>
+</td>
                                 <td class="px-6 py-4">sujatathapa05@gmail.com</td>
                                 <td class="px-6 py-4 font-mono">9815145982</td>
-                                <td class="px-6 py-4">Australia</td>
+                                <td class="px-6 py-4">Nepal</td>
                                 <td class="px-6 py-4 text-center">
-                                    <button onclick="handleUnarchive(this, 'Sujata Thapa')" class="text-gray-700 hover:text-blue-600 border border-gray-300 rounded p-1.5 inline-flex items-center justify-center hover:bg-blue-50 transition-all">
-                                        <i class="fas fa-box-open text-base"></i>
-                                    </button>
+                                    <button onclick="handleVerify(this)" class="bg-indigo-600 text-white px-8 py-1.5 rounded-md text-xs font-bold hover:bg-indigo-700 transition-all">Verify</button>
                                 </td>
                             </tr>
+                            <!-- Student: Anita B.K -->
                             <tr class="hover:bg-gray-50 border-b border-gray-100">
-                                <td class="px-6 py-4"><input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500"></td>
                                 <td class="px-6 py-4 font-semibold">
                                     <button onclick="openProfile('Anita B.K', 'anita56@gmail.com', '9874512365', 'Australia')" class="text-blue-600 hover:text-blue-800 hover:underline text-left font-semibold">
                                         Anita B.K
@@ -132,41 +134,91 @@
                                 <td class="px-6 py-4 font-mono">9874512365</td>
                                 <td class="px-6 py-4">Australia</td>
                                 <td class="px-6 py-4 text-center">
-                                    <button onclick="handleUnarchive(this, 'Anita B.K')" class="text-gray-700 hover:text-blue-600 border border-gray-300 rounded p-1.5 inline-flex items-center justify-center hover:bg-blue-50 transition-all">
-                                        <i class="fas fa-box-open text-base"></i>
-                                    </button>
+                                    <button onclick="handleVerify(this)" class="bg-indigo-600 text-white px-8 py-1.5 rounded-md text-xs font-bold hover:bg-indigo-700 transition-all">Verify</button>
                                 </td>
                             </tr>
+                            <!-- Student: Nikita Thapa -->
                             <tr class="hover:bg-gray-50 border-b border-gray-100">
-                                <td class="px-6 py-4"><input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500"></td>
                                 <td class="px-6 py-4 font-semibold">
-                                    <button onclick="openProfile('Nikita Thapa', 'nikitathapa8@gmail.com', '9815478965', 'Uk')" class="text-blue-600 hover:text-blue-800 hover:underline text-left font-semibold">
+                                    <button onclick="openProfile('Nikita Thapa', 'nikitathapa8@gmail.com', '9815478965', 'Canada')" class="text-blue-600 hover:text-blue-800 hover:underline text-left font-semibold">
                                         Nikita Thapa
                                     </button>
                                 </td>
                                 <td class="px-6 py-4">nikitathapa8@gmail.com</td>
                                 <td class="px-6 py-4 font-mono">9815478965</td>
-                                <td class="px-6 py-4">Uk</td>
+                                <td class="px-6 py-4">Canada</td>
                                 <td class="px-6 py-4 text-center">
-                                    <button onclick="handleUnarchive(this, 'Nikita Thapa')" class="text-gray-700 hover:text-blue-600 border border-gray-300 rounded p-1.5 inline-flex items-center justify-center hover:bg-blue-50 transition-all">
-                                        <i class="fas fa-box-open text-base"></i>
-                                    </button>
+                                    <button onclick="handleVerify(this)" class="bg-indigo-600 text-white px-8 py-1.5 rounded-md text-xs font-bold hover:bg-indigo-700 transition-all">Verify</button>
                                 </td>
                             </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4"><input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500"></td>
+                            <!-- Student: Aastha Ojha -->
+                            <tr class="hover:bg-gray-50 border-b border-gray-100">
                                 <td class="px-6 py-4 font-semibold">
-                                    <button onclick="openProfile('Aastha Ojha', 'aasthaojhaa11@gmail.com', '9805489615', 'New zealand')" class="text-blue-600 hover:text-blue-800 hover:underline text-left font-semibold">
+                                    <button onclick="openProfile('Aastha Ojha', 'aasthaojhaa11@gmail.com', '9805489615', 'USA')" class="text-blue-600 hover:text-blue-800 hover:underline text-left font-semibold">
                                         Aastha Ojha
                                     </button>
                                 </td>
                                 <td class="px-6 py-4">aasthaojhaa11@gmail.com</td>
                                 <td class="px-6 py-4 font-mono">9805489615</td>
-                                <td class="px-6 py-4">New zealand</td>
+                                <td class="px-6 py-4">USA</td>
                                 <td class="px-6 py-4 text-center">
-                                    <button onclick="handleUnarchive(this, 'Aastha Ojha')" class="text-gray-700 hover:text-blue-600 border border-gray-300 rounded p-1.5 inline-flex items-center justify-center hover:bg-blue-50 transition-all">
-                                        <i class="fas fa-box-open text-base"></i>
+                                    <button onclick="handleVerify(this)" class="bg-indigo-600 text-white px-8 py-1.5 rounded-md text-xs font-bold hover:bg-indigo-700 transition-all">Verify</button>
+                                </td>
+                            </tr>
+                            <!-- Student: Samip Basnet -->
+                            <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                <td class="px-6 py-4 font-semibold">
+                                    <button onclick="openProfile('Samip Basnet', 'basnetsamip45@gmail.com', '9895102456', 'UK')" class="text-blue-600 hover:text-blue-800 hover:underline text-left font-semibold">
+                                        Samip Basnet
                                     </button>
+                                </td>
+                                <td class="px-6 py-4">basnetsamip45@gmail.com</td>
+                                <td class="px-6 py-4 font-mono">9895102456</td>
+                                <td class="px-6 py-4">UK</td>
+                                <td class="px-6 py-4 text-center">
+                                    <button onclick="handleVerify(this)" class="bg-indigo-600 text-white px-8 py-1.5 rounded-md text-xs font-bold hover:bg-indigo-700 transition-all">Verify</button>
+                                </td>
+                            </tr>
+                            <!-- Student: Rejina Rana -->
+                            <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                <td class="px-6 py-4 font-semibold">
+                                    <button onclick="openProfile('Rejina Rana', 'ranarejina22@gmail.com', '9815678420', 'Japan')" class="text-blue-600 hover:text-blue-800 hover:underline text-left font-semibold">
+                                        Rejina Rana
+                                    </button>
+                                </td>
+                                <td class="px-6 py-4">ranarejina22@gmail.com</td>
+                                <td class="px-6 py-4 font-mono">9815678420</td>
+                                <td class="px-6 py-4">Japan</td>
+                                <td class="px-6 py-4 text-center">
+                                    <button onclick="handleVerify(this)" class="bg-indigo-600 text-white px-8 py-1.5 rounded-md text-xs font-bold hover:bg-indigo-700 transition-all">Verify</button>
+                                </td>
+                            </tr>
+                            <!-- Student: Binita Ale -->
+                            <tr class="hover:bg-gray-50 border-b border-gray-100">
+                                <td class="px-6 py-4 font-semibold">
+                                    <button onclick="openProfile('Binita Ale', 'binitaale09@gmail.com', '9785614821', 'Nepal')" class="text-blue-600 hover:text-blue-800 hover:underline text-left font-semibold">
+                                        Binita Ale
+                                    </button>
+                                </td>
+                                <td class="px-6 py-4">binitaale09@gmail.com</td>
+                                <td class="px-6 py-4 font-mono">9785614821</td>
+                                <td class="px-6 py-4">Nepal</td>
+                                <td class="px-6 py-4 text-center">
+                                    <button onclick="handleVerify(this)" class="bg-indigo-600 text-white px-8 py-1.5 rounded-md text-xs font-bold hover:bg-indigo-700 transition-all">Verify</button>
+                                </td>
+                            </tr>
+                            <!-- Student: Salina Dura -->
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 font-semibold">
+                                    <button onclick="openProfile('Salina Dura', 'salinadura22@gmail.com', '9801148795', 'Australia')" class="text-blue-600 hover:text-blue-800 hover:underline text-left font-semibold">
+                                        Salina Dura
+                                    </button>
+                                </td>
+                                <td class="px-6 py-4">salinadura22@gmail.com</td>
+                                <td class="px-6 py-4 font-mono">9801148795</td>
+                                <td class="px-6 py-4">Australia</td>
+                                <td class="px-6 py-4 text-center">
+                                    <button onclick="handleVerify(this)" class="bg-indigo-600 text-white px-8 py-1.5 rounded-md text-xs font-bold hover:bg-indigo-700 transition-all">Verify</button>
                                 </td>
                             </tr>
                         </tbody>
@@ -174,22 +226,19 @@
                 </div>
                 
                 <div class="p-4 flex justify-between items-center text-xs text-gray-400 border-t bg-gray-50">
-                    <span>Showing 1 to 4 of 4 entities</span>
-                    <div class="flex gap-1 items-center">
-                        <span class="mr-2">10/Pages</span>
-                        <button class="px-2 py-1 bg-white border border-gray-200 rounded hover:bg-gray-100"><i class="fas fa-chevron-left"></i></button>
-                        <button class="px-3 py-1 bg-blue-600 text-white rounded">1</button>
-                        <button class="px-3 py-1 bg-white border border-gray-200 rounded hover:bg-gray-100">2</button>
-                        <button class="px-3 py-1 bg-white border border-gray-200 rounded hover:bg-gray-100">3</button>
-                        <button class="px-2 py-1 bg-white border border-gray-200 rounded hover:bg-gray-100"><i class="fas fa-chevron-right"></i></button>
+                    <span>Showing 1 to 8 of 8 entities</span>
+                    <div class="flex gap-1">
+                        <button class="px-3 py-1 bg-white border border-gray-200 rounded hover:bg-gray-100">1</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- DYNAMIC STUDENT PROFILE MODAL (POP-UP) -->
     <div id="profileModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 p-4 transition-all duration-300">
         <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300">
+            <!-- Modal Header -->
             <div class="bg-indigo-600 px-6 py-4 flex justify-between items-center text-white">
                 <div class="flex items-center gap-3">
                     <i class="fas fa-id-card text-xl"></i>
@@ -200,6 +249,7 @@
                 </button>
             </div>
             
+            <!-- Modal Body (तपाईँले दिनुहुने थप कोड यहाँ मज्जाले अट्छ) -->
             <div class="p-6 space-y-6">
                 <div class="flex items-center gap-4 border-b pb-4">
                     <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 text-2xl font-bold" id="modalInitials">
@@ -222,77 +272,51 @@
                     </div>
                 </div>
 
+                <!-- Placeholder Area: तपाईँको थप प्रोफाइल डिटेल्स राख्ने ठाउँ -->
                 <div class="border border-dashed border-gray-300 rounded-xl p-4 bg-indigo-50/30 text-center">
                     <p class="text-xs text-indigo-600 font-semibold"><i class="fas fa-info-circle mr-1"></i> Academic Documents & Registration Data</p>
                     <p class="text-xs text-gray-400 mt-1">तपाईँको बाँकी प्रोफाइल इन्टरफेसको कोड यहाँ तल जोडिनेछ।</p>
                 </div>
             </div>
 
+            <!-- Modal Footer -->
             <div class="bg-gray-50 px-6 py-4 flex justify-end gap-2 border-t">
                 <button onclick="closeProfile()" class="px-4 py-2 border rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-all">Close</button>
             </div>
         </div>
     </div>
 
+    <!-- JavaScript For Interactivity -->
     <script>
-        // Unarchive बटन क्लिक गर्दा चल्ने रोबस्ट फङ्सन 
-        function handleUnarchive(btn, name) {
-    if (confirm(`Are you sure you want to restore the profile for ${name}? `)) {
-        const row = btn.closest('tr');
-        row.style.opacity = '0.5';
-        
-        setTimeout(() => {
-            row.remove();
-            // alert को सट्टा यो फङ्सन कल गर्ने (जसले गर्दा OK थिच्न पर्दैन)
-            showToast(`The profile for ${name} has been successfully restored.`);
-        }, 300);
-    }
-}
+        function handleVerify(btn) {
+            btn.innerText = "Verified";
+            btn.classList.remove('bg-indigo-600', 'text-white', 'hover:bg-indigo-700');
+            btn.classList.add('verified-state');
+            btn.disabled = true;
+        }
 
-// टोस्ट मेसेज देखाउने नयाँ फङ्सन
-function showToast(message) {
-    // पहिले नै टोस्ट छ भने हटाइदिने
-    const existingToast = document.getElementById('toast-notification');
-    if (existingToast) existingToast.remove();
-
-    // नयाँ टोस्ट एलिमेन्ट बनाउने
-    const toast = document.createElement('div');
-    toast.id = 'toast-notification';
-    // Tailwind क्लासेस: स्क्रिनको तल दायाँ बस्छ, हरियो रङको प्रोफेसनल देखिन्छ
-    toast.className = 'fixed bottom-5 right-5 bg-emerald-600 text-white px-5 py-3 rounded-lg shadow-xl z-50 flex items-center gap-2 transform transition-all duration-300 translate-y-10 opacity-0';
-    toast.innerHTML = `<i class="fas fa-check-circle"></i> <span>${message}</span>`;
-
-    document.body.appendChild(toast);
-
-    // एनिमेसनका साथ देखाउने
-    setTimeout(() => {
-        toast.classList.remove('translate-y-10', 'opacity-0');
-    }, 10);
-
-    // ३ सेकेन्ड (3000ms) पछि आफैं गायब हुने
-    setTimeout(() => {
-        toast.classList.add('translate-y-10', 'opacity-0');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
+        // मोडल खोल्ने फङ्सन (डाटा डाइनामिकली चेन्ज हुन्छ)
         function openProfile(name, email, phone, country) {
             document.getElementById('modalName').innerText = name;
             document.getElementById('modalEmail').innerText = email;
             document.getElementById('modalPhone').innerText = phone;
             document.getElementById('modalCountry').innerText = country;
             
+            // नामको पहिलो अक्षरहरू निकालेर प्रोफाइल आइकन बनाउने (उदा: Sujata Thapa -> ST)
             const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
             document.getElementById('modalInitials').innerText = initials;
 
+            // मोडल शो गर्ने
             const modal = document.getElementById('profileModal');
             modal.classList.remove('hidden');
         }
 
+        // मोडल बन्द गर्ने फङ्सन
         function closeProfile() {
             document.getElementById('profileModal').classList.add('hidden');
         }
 
+        // मोडलको बाहिर खाली ठाउँमा क्लिक गर्दा पनि बन्द हुने लजिक
         window.onclick = function(event) {
             const modal = document.getElementById('profileModal');
             if (event.target == modal) {
