@@ -1,5 +1,6 @@
 from django import forms
-from .models import User, Branch, ManagerProfile, FrontDeskProfile
+#  UPDATED CLEAN IMPORT
+from .models import User, Branch, FrontDeskProfile
 
 class BranchForm(forms.ModelForm):
     class Meta:

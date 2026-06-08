@@ -1,0 +1,312 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Status - DristiSewa</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Inter',sans-serif;
+        }
+
+        body{
+            display:flex;
+            background:#f0f2f5;
+            height:100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar{
+            width:280px;
+            background:linear-gradient(180deg,#1e27cc 0%, #151b8d 100%);
+            color:white;
+            display:flex;
+            flex-direction:column;
+        }
+
+        .user-profile{
+            padding:40px 20px;
+            text-align:center;
+            border-bottom:1px solid rgba(255,255,255,0.1);
+        }
+
+        .user-profile i{
+            font-size:60px;
+            color:white;
+        }
+
+        .user-profile p{
+            color:white;
+            margin-top:10px;
+            font-size:16px;
+            font-weight:600;
+        }
+
+        .nav-links{
+            flex:1;
+            padding:20px 0;
+        }
+
+        .nav-item{
+            padding:15px 30px;
+            display:flex;
+            align-items:center;
+            text-decoration:none;
+            color:rgba(255,255,255,0.85);
+            transition:0.3s;
+        }
+
+        .nav-item i{
+            margin-right:12px;
+        }
+
+        .nav-item:hover{
+            background:rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active{
+            background:rgba(255,255,255,0.15);
+        }
+
+        .logout-btn{
+            background:#ffb800;
+            color:#000;
+            padding:18px;
+            text-align:center;
+            text-decoration:none;
+            font-weight:700;
+        }
+
+        /* MAIN */
+        .main-content{
+            flex:1;
+            display:flex;
+            flex-direction:column;
+        }
+
+        .top-header{
+            background:#fff;
+            padding:15px 40px;
+            display:flex;
+            justify-content:flex-end;
+            align-items:center;
+        }
+
+        .content-box{
+            margin:30px;
+            background:white;
+            padding:40px;
+            border-radius:12px;
+            box-shadow:0 4px 15px rgba(0,0,0,0.05);
+            flex:1;
+            overflow-y:auto;
+        }
+
+        h2{
+            color:#1e27cc;
+            margin-bottom:8px;
+        }
+
+        .content-box p{
+            color:#666;
+            margin-bottom:25px;
+        }
+
+        /* DOCUMENT CARD */
+        .doc-list{
+            display:flex;
+            flex-direction:column;
+            gap:15px;
+        }
+
+        .doc-card{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:15px 20px;
+            border:1px solid #e6e6e6;
+            border-radius:10px;
+            transition:0.2s;
+            background:#fff;
+            text-decoration: none; /* Keeps layout clear when wrapped as a link */
+        }
+
+        .doc-card:hover{
+            border-color:#1e27cc;
+            transform:scale(1.01);
+            box-shadow: 0 2px 8px rgba(30, 39, 204, 0.08);
+        }
+
+        .doc-left{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            color:#333;
+            font-weight:500;
+        }
+
+        .doc-left i{
+            color:#1e27cc;
+            font-size:20px;
+        }
+        
+        .doc-meta {
+            font-size: 13px;
+            color: #888;
+            font-weight: 400;
+            margin-left: 5px;
+        }
+
+        /* STATUS BADGES */
+        .badge{
+            padding:6px 14px;
+            border-radius:20px;
+            font-size:12px;
+            font-weight:700;
+        }
+
+        .pending{
+            background:#fff3cd;
+            color:#856404;
+        }
+
+        .approved{
+            background:#d4edda;
+            color:#155724;
+        }
+
+        .rejected{
+            background:#f8d7da;
+            color:#721c24;
+        }
+
+        /* EMPTY STATE */
+        .empty{
+            text-align:center;
+            padding:60px;
+            color:#999;
+        }
+
+        .empty i{
+            font-size:50px;
+            margin-bottom:10px;
+            display:block;
+        }
+
+        .empty h3{
+            margin-bottom:10px;
+            color:#555;
+        }
+
+        .empty p{
+            color:#999;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="sidebar">
+
+    <div class="user-profile">
+        <i class="fa-solid fa-circle-user"></i>
+        <p>Student Dashboard</p>
+    </div>
+
+    <div class="nav-links">
+        <a href="{% url 'students:dashboard' %}" class="nav-item">
+            <i class="fa-solid fa-house"></i> Home
+        </a>
+
+        <a href="{% url 'students:upload_docs' %}" class="nav-item">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Upload Documents
+        </a>
+
+        <a href="{% url 'students:app_status' %}" class="nav-item active">
+            <i class="fa-solid fa-clock"></i> Status
+        </a>
+    </div>
+
+    <a href="{% url 'students:logout' %}" class="logout-btn">
+        <i class="fa-solid fa-power-off"></i> Logout
+    </a>
+
+</div>
+
+<div class="main-content">
+
+    <div class="top-header">
+        <div>
+            <strong>{{ request.user.first_name }} {{ request.user.last_name }}</strong><br>
+            <small>{{ request.user.email }}</small>
+        </div>
+    </div>
+
+    <div class="content-box">
+
+        <h2>Document Status</h2>
+
+        <p>
+            Track your uploaded documents and their current status
+        </p>
+
+        {% if documents %}
+
+            <div class="doc-list">
+
+                {% for doc in documents %}
+                    <a href="{{ doc.file.url }}" target="_blank" class="doc-card">
+
+                        <div class="doc-left">
+                            <i class="fa-solid fa-file-lines"></i>
+                            <span>
+                                {{ doc.document_type|default:doc.document_name|default:"Uploaded Document" }}
+                                {% if doc.uploaded_at %}
+                                    <span class="doc-meta">({{ doc.uploaded_at|date:"M d, Y" }})</span>
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        {# Check status safely by prioritizing database values or default to Pending #}
+                        {% if doc.status == "Approved" or doc.is_verified %}
+                            <span class="badge approved">Approved</span>
+                        {% elif doc.status == "Rejected" or doc.is_rejected %}
+                            <span class="badge rejected">Rejected</span>
+                        {% else %}
+                            <span class="badge pending">Pending</span>
+                        {% endif %}
+
+                    </a>
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty">
+                <i class="fa-solid fa-folder-open"></i>
+
+                <h3>No Documents Yet</h3>
+
+                <p>
+                    Upload your documents to see them here
+                </p>
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+</html>

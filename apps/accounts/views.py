@@ -8,7 +8,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.utils import timezone
 
-from .models import User, StudentProfile, Branch, ManagerProfile, FrontDeskProfile
+#  UPDATED CLEAN IMPORT
+from .models import User, StudentProfile, Branch, FrontDeskProfile
 from .forms import BranchForm, AdminManagerCreationForm
 
 

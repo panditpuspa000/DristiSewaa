@@ -1,0 +1,217 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Login - DristiSewa</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Poppins',sans-serif;
+        }
+
+        body{
+            background-color:#fff;
+            height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+
+        .login-card{
+            width:700px;
+            padding:50px 40px;
+            border:2px solid #b5c0f7;
+            border-radius:15px;
+            text-align:center;
+        }
+
+        .logo img{
+            height:85px;
+            margin-bottom:10px;
+        }
+
+        .login-header{
+            display:flex;
+            align-items:center;
+            margin:30px 0;
+        }
+
+        .login-header::before,
+        .login-header::after{
+            content:'';
+            flex:1;
+            border-bottom:1.5px solid #4a4ae0;
+        }
+
+        .login-header span{
+            color:#4a4ae0;
+            font-size:20px;
+            font-weight:500;
+            padding:0 10px;
+        }
+
+        form{
+            text-align:left;
+            width:90%;
+            margin:0 auto;
+        }
+
+        .input-group{
+            margin-bottom:25px;
+        }
+
+        .input-group label{
+            display:block;
+            color:#4a4ae0;
+            font-size:15px;
+            font-weight:600;
+            margin-bottom:10px;
+        }
+
+        .input-wrapper{
+            position:relative;
+        }
+
+        .input-wrapper i{
+            position:absolute;
+            left:15px;
+            top:50%;
+            transform:translateY(-50%);
+            color:#4a4ae0;
+            font-size:18px;
+        }
+
+        .input-wrapper input{
+            width:100%;
+            padding:14px 14px 14px 45px;
+            border:1px solid #d1d1d1;
+            border-radius:6px;
+            font-size:15px;
+            outline:none;
+        }
+
+        .input-wrapper input:focus{
+            border-color:#4a4ae0;
+            box-shadow:0 0 5px rgba(74,74,224,0.2);
+        }
+
+        .login-btn{
+            background:#6c63ff;
+            color:white;
+            padding:12px 60px;
+            border:none;
+            border-radius:10px;
+            font-size:18px;
+            font-weight:600;
+            cursor:pointer;
+            display:block;
+            margin:35px auto 0;
+        }
+
+        .login-btn:hover{
+            background:#574dfa;
+        }
+
+        .register-text{
+            margin-top:25px;
+            font-size:14px;
+            color:#666;
+            text-align:center;
+        }
+
+        .register-text a{
+            color:#4a4ae0;
+            text-decoration:none;
+            font-weight:bold;
+        }
+
+        /* Improved: Dynamic colors handling matching view tags */
+        .msg {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+            font-weight: 500;
+        }
+        .msg.error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+        .msg.success {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+        .msg.warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+        }
+    </style>
+
+</head>
+
+<body>
+
+<div class="login-card">
+
+    <div class="logo">
+        <img src="{% static 'images/logo.png' %}" alt="Logo">
+    </div>
+
+    <div class="login-header">
+        <span>Student Login</span>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <p class="msg {% if message.tags %}{{ message.tags }}{% else %}error{% endif %}">
+                {{ message }}
+            </p>
+        {% endfor %}
+    {% endif %}
+
+    <form action="{% url 'students:login' %}" method="POST">
+        {% csrf_token %}
+
+        <div class="input-group">
+            <label>Email ID</label>
+            <div class="input-wrapper">
+                <i class="fa-regular fa-envelope"></i>
+                <input type="email" name="email" placeholder="Enter your email" required>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <div class="input-wrapper">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" name="password" placeholder="Enter your password" required>
+            </div>
+        </div>
+
+        <button type="submit" class="login-btn">
+            Login
+        </button>
+    </form>
+
+    <p class="register-text">
+        Don't have an account?
+        <a href="{% url 'students:register' %}">Register Now</a>
+    </p>
+
+</div>
+
+</body>
+</html>

@@ -3,19 +3,6 @@ from django.conf import settings
 from django.utils import timezone
 
 # ==============================================================================
-# STUDENT PROFILE MODEL
-# ==============================================================================
-class Student(models.Model):
-    # FIXED: Swapped out 'User' for settings.AUTH_USER_MODEL to fix the crash
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='student_app_profile')
-    faculty = models.CharField(max_length=100, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.user.email if self.user.email else self.user.username
-
-
-# ==============================================================================
 # OTP MODEL (FINAL SAFE VERSION)
 # ==============================================================================
 class OTPModel(models.Model):

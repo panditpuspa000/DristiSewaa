@@ -18,11 +18,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+<<<<<<< HEAD
     'frontdesk_core',
 
     # Custom Apps
     'apps.accounts',
     'apps.consultancy',
+=======
+    
+    # Custom Apps Core 
+    'apps.accounts',        # 🔐 CRITICAL: Kept at the top so AUTH_USER_MODEL loads first
+    
+>>>>>>> ac5214c80f6b2f633ffe5eb51c5c2e9776867066
     'apps.notifications',
     'students_app',
 

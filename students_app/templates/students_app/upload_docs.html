@@ -1,0 +1,247 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Documents - DristiSewa</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Inter',sans-serif;
+        }
+
+        body{
+            display:flex;
+            background:#f0f2f5;
+            height:100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar{
+            width:280px;
+            background:linear-gradient(180deg,#1e27cc 0%, #151b8d 100%);
+            color:white;
+            display:flex;
+            flex-direction:column;
+        }
+
+        .user-profile{
+            padding:40px 20px;
+            text-align:center;
+            border-bottom:1px solid rgba(255,255,255,0.1);
+        }
+
+        .user-profile i{
+            font-size:60px;
+            color:white;
+        }
+
+        .user-profile p{
+            color:white;
+            margin-top:10px;
+            font-size:16px;
+            font-weight:600;
+            box-sizing: border-box;
+        }
+
+        .nav-links{
+            flex:1;
+            padding:20px 0;
+        }
+
+        .nav-item{
+            padding:15px 30px;
+            display:flex;
+            align-items:center;
+            text-decoration:none;
+            color:rgba(255,255,255,0.85);
+            transition:0.3s;
+        }
+
+        .nav-item i{
+            margin-right:12px;
+        }
+
+        .nav-item:hover{
+            background:rgba(255,255,255,0.1);
+        }
+
+        .logout-btn{
+            background:#ffb800;
+            color:#000;
+            padding:18px;
+            text-align:center;
+            text-decoration:none;
+            font-weight:700;
+        }
+
+        /* MAIN */
+        .main-content{
+            flex:1;
+            display:flex;
+            flex-direction:column;
+        }
+
+        .top-header{
+            background:#fff;
+            padding:15px 40px;
+            display:flex;
+            justify-content:flex-end;
+            align-items:center;
+        }
+
+        .content-box{
+            margin:30px;
+            background:white;
+            padding:40px;
+            border-radius:12px;
+            box-shadow:0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        h2{
+            color:#1e27cc;
+            margin-bottom:10px;
+        }
+
+        .content-box p{
+            color:#666;
+            margin-bottom:25px;
+        }
+
+        form{
+            display:flex;
+            flex-direction:column;
+            gap:20px;
+        }
+
+        input[type="text"],
+        input[type="file"]{
+            padding:12px;
+            border:1px solid #ddd;
+            border-radius:8px;
+            width:100%;
+            outline:none;
+        }
+
+        input[type="text"]:focus,
+        input[type="file"]:focus{
+            border-color:#1e27cc;
+        }
+
+        .btn{
+            background:#1e27cc;
+            color:white;
+            border:none;
+            padding:12px;
+            border-radius:8px;
+            cursor:pointer;
+            font-weight:600;
+            transition:0.3s;
+        }
+
+        .btn:hover{
+            background:#151b8d;
+        }
+
+        .msg{
+            margin-bottom:15px;
+            color:green;
+            font-weight:600;
+        }
+
+        .error{
+            color:red;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="sidebar">
+
+    <div class="user-profile">
+        <i class="fa-solid fa-circle-user"></i>
+        <p>Student Dashboard</p>
+    </div>
+
+    <div class="nav-links">
+        <a href="{% url 'students:dashboard' %}" class="nav-item">
+            <i class="fa-solid fa-house"></i> Home
+        </a>
+
+        <a href="{% url 'students:upload_docs' %}" class="nav-item" style="background:rgba(255,255,255,0.15);">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Upload Documents
+        </a>
+
+        <a href="{% url 'students:app_status' %}" class="nav-item">
+            <i class="fa-solid fa-clock"></i> Status
+        </a>
+
+    </div>
+
+    <a href="{% url 'students:logout' %}" class="logout-btn">
+        <i class="fa-solid fa-power-off"></i> Logout
+    </a>
+
+</div>
+
+<div class="main-content">
+
+    <div class="top-header">
+        <div>
+            <strong>{{ request.user.first_name }}</strong><br>
+            <small>{{ request.user.email }}</small>
+        </div>
+    </div>
+
+    <div class="content-box">
+
+        <h2>Upload Documents</h2>
+
+        <p>
+            Please upload your required documents (PDF, Image, etc.)
+        </p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <p class="msg">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            <input 
+                type="text"
+                name="document_name"
+                placeholder="Document Name"
+                required
+            >
+
+            <input 
+                type="file"
+                name="document_file"
+                required
+            >
+
+            <button type="submit" class="btn">
+                Upload Document
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>
