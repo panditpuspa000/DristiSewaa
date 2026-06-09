@@ -1,7 +1,10 @@
 import os
+import sys
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(BASE_DIR))
+sys.path.insert(0, str(BASE_DIR / 'apps'))
 
 # ================= SECURITY =================
 SECRET_KEY = 'django-insecure-(uw(cwz(j=h(%&vy1lu3=oge-e&_=nx(h+al@sfr(=&@da&g^-)'
@@ -18,18 +21,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-<<<<<<< HEAD
+
     'frontdesk_core',
 
     # Custom Apps
-    'apps.accounts',
-    'apps.consultancy',
-=======
-    
-    # Custom Apps Core 
-    'apps.accounts',        # 🔐 CRITICAL: Kept at the top so AUTH_USER_MODEL loads first
-    
->>>>>>> ac5214c80f6b2f633ffe5eb51c5c2e9776867066
+    'apps.accounts',          # 🔐 CRITICAL: Kept at the top so AUTH_USER_MODEL loads first
     'apps.notifications',
     'students_app',
 

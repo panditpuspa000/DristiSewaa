@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.utils import timezone
 
+
 #  UPDATED CLEAN IMPORT
 from .models import User, StudentProfile, Branch, FrontDeskProfile
 from .forms import BranchForm, AdminManagerCreationForm
@@ -65,7 +66,7 @@ def staff_login(request):
 
                 # ================= FRONTDESK FIX (IMPORTANT) =================
                 if role in ["front desk", "front_desk", "frontdesk", "staff"]:
-                    return redirect("frontdesk_core:front_desk_dashboard")
+                    return redirect("front_desk_dashboard")
 
                 elif auth_user.is_superuser or role == "admin":
                     return redirect("accounts:admin_dashboard")

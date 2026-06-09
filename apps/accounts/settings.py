@@ -26,7 +26,6 @@ INSTALLED_APPS = [
     'apps.accounts',
     'apps.consultancy',
     'apps.notifications',
-    'frontdesk_core',
 ]
 
 

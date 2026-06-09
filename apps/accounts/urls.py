@@ -28,6 +28,4 @@ urlpatterns = [
     path('user/update/<int:user_id>/', views.update_manager, name='update_manager'),
     path('user/delete/<int:user_id>/', views.delete_user_account, name='delete_user'),
 
-    # ================= FRONTDESK =================
-    path('frontdesk/', include('frontdesk_core.urls')),
 ]

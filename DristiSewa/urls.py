@@ -5,7 +5,6 @@ from django.conf.urls.static import static
 from django.views.generic import RedirectView
 
 urlpatterns = [
-<<<<<<< HEAD
     path('', RedirectView.as_view(
         pattern_name='accounts:staff_login',
         permanent=False
@@ -18,7 +17,7 @@ urlpatterns = [
     path('frontdesk/', include('frontdesk_core.urls')),
 
     path('student/', include('students_app.urls')),
-=======
+
     # 1. Clean Root Redirect: FIXED to send empty root hits directly to the student login page
     path('', RedirectView.as_view(pattern_name='students:login', permanent=False), name='root_redirect'),
     
@@ -34,7 +33,7 @@ urlpatterns = [
     
     # Student Management App System
     path('student/', include('students_app.urls', namespace='students')),
->>>>>>> ac5214c80f6b2f633ffe5eb51c5c2e9776867066
+
 ]
 
 if settings.DEBUG:
