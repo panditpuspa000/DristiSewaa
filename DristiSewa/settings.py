@@ -22,15 +22,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'frontdesk_core',
-
     # Custom Apps
     'apps.accounts',          # 🔐 CRITICAL: Kept at the top so AUTH_USER_MODEL loads first
     'apps.notifications',
     'students_app',
-
-    # Frontdesk (future)
-    # 'apps.frontdesk_core',
 ]
 
 
